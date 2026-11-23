@@ -1,0 +1,26 @@
+{
+  "source": "Madhya Pradesh Pollution Control Board (MPPCB) & Central Board of Indirect Taxes and Customs (CBIC)",
+  "last_verified": "2026-02-10",
+  "circulars": [
+    {
+      "id": "CIRC-MPPCB-2026-04",
+      "title": "Mandatory Continuous Emission / Effluent Monitoring for Red/Orange Category Industrial Units in Pithampur & Sanwer Road",
+      "issuing_authority": "Madhya Pradesh Pollution Control Board, Bhopal",
+      "effective_date": "2026-04-01",
+      "what_changed": "Installation of IoT telemetry sensors on effluent discharge lines and stack emissions is now mandatory before consent renewal.",
+      "applicability": "All electroplating, heat-treatment, foundry, and chemical processing MSMEs in Indore & Dhar districts.",
+      "action_required": "Procure and calibrate CPCB/MPPCB empaneled IoT data-loggers; submit compliance affidavit on MPPCB XGN portal.",
+      "penalty_risk": "Revocation of Consent to Operate (CTO) and environmental compensation cess under Section 33A of Water Act."
+    },
+    {
+      "id": "CIRC-CBIC-2026-11",
+      "title": "Advisory on Mandatory e-Invoicing Verification on GeM & ONDC B2B Transactions",
+      "issuing_authority": "Central Board of Indirect Taxes and Customs (CBIC)",
+      "effective_date": "2026-03-31",
+      "what_changed": "B2B e-Invoices without a verified Invoice Reference Number (IRN) and embedded signed QR code will be rejected at GeM disbursement gate.",
+      "applicability": "All registered MSME suppliers delivering to Central/State PSUs or Tier-1 OEMs.",
+      "action_required": "Generate IRN via NIC e-Invoice API or GSP portal before dispatching consignment with e-Way bill.",
+      "penalty_risk": "Disallowance of Input Tax Credit (ITC) for the buyer and penalty of Rs 10,000 or tax amount per invoice under Section 122."
+    }
+  ]
+}

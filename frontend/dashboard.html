@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Owner Operations Dashboard · BharatSetu AI</title>
+  <style>
+    :root {
+      --bg: #f4f7f5;
+      --surface: #ffffff;
+      --ink: #17231f;
+      --mute: #5d6b65;
+      --line: #d5dcd7;
+      --brand: #0f6b57;
+      --brand-hover: #0a4f40;
+      --tint: #e8f3ef;
+      --accent: #d97706;
+      --danger: #dc2626;
+      --radius: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1411;
+        --surface: #16201b;
+        --ink: #e6efe9;
+        --mute: #9bb0a6;
+        --line: #293831;
+        --brand: #2ec49c;
+        --tint: #142b23;
+        --accent: #f59e0b;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14.5px/1.5 system-ui, -apple-system, sans-serif;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--brand);
+    }
+    .badge {
+      font-size: 11px;
+      background: var(--tint);
+      color: var(--brand);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    button, .btn {
+      background: var(--brand);
+      color: #fff;
+      border: 0;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-secondary {
+      background: var(--tint);
+      color: var(--brand);
+      border: 1px solid var(--line);
+    }
+    main {
+      padding: 24px;
+      max-width: 1240px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .card h2 {
+      font-size: 15px;
+      margin: 0 0 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .kpi-num {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--brand);
+      margin: 4px 0;
+    }
+    .chart-box {
+      width: 100%;
+      height: 180px;
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      padding-top: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .bar {
+      width: 100%;
+      background: var(--brand);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s ease;
+    }
+    .bar-label { font-size: 11px; color: var(--mute); }
+    .bar-val { font-size: 11px; font-weight: 700; color: var(--ink); }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+    th { color: var(--mute); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span>📊</span>
+      <div>
+        <span id="txt-title">Owner Operations & ROI Dashboard</span>
+        <span class="badge" id="txt-unit">Sharma Auto Components · Pithampur</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <a href="/" class="btn btn-secondary">💬 Setu Copilot Chat</a>
+      <a href="/cluster" class="btn btn-secondary">🏛️ District Observatory</a>
+      <a href="/api/energy/carbon-report-pdf" download class="btn">📄 Download Carbon Report</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Row 1: KPI Cards -->
+    <div class="grid-4">
+      <div class="card">
+        <span style="color:var(--mute); font-size:12px;">Financial Gain / Year</span>
+        <div class="kpi-num" id="d-money">₹0</div>
+        <small style="color:var(--mute);">Solar + ToD load shifting + discounts</small>
+      </div>
+      <div class="card">
+        <span style="color:var(--mute); font-size:12px;">Energy Cut / Month</span>
+        <div class="kpi-num" id="d-kwh">0 kWh</div>
+        <small style="color:var(--mute);">Grid offset via 40 kWp solar array</small>
+      </div>
+      <div class="card">
+        <span style="color:var(--mute); font-size:12px;">Scope 2 CO2 Abatement</span>
+        <div class="kpi-num" id="d-co2">0.0 tCO2e</div>
+        <small style="color:var(--mute);">Monthly Scope 2 footprint reduction</small>
+      </div>
+      <div class="card">
+        <span style="color:var(--mute); font-size:12px;">Compliance & Paperwork</span>
+        <div class="kpi-num" id="d-hours">0.0 hrs</div>
+        <small style="color:var(--mute);">Hours saved by Setu DPI automation</small>
+      </div>
+    </div>
+
+    <!-- Row 2: Charts -->
+    <div class="grid-2">
+      <!-- Defect Rate Over Time -->
+      <div class="card">
+        <h2>
+          <span>Shopfloor Rejection Rate Over Time</span>
+          <span class="badge">YOLOv8 + ISO 9001</span>
+        </h2>
+        <div class="chart-box" id="defect-chart"></div>
+        <p style="font-size:12px; color:var(--mute); margin-top:10px;">
+          Rejection rate reduced from 4.8% to 3.6% over 6 months, saving approx ₹47,000/month in scrap metal cost.
+        </p>
+      </div>
+
+      <!-- 24-Hour Load Curve & Peak Shift -->
+      <div class="card">
+        <h2>
+          <span>24-Hour Power Load Curve (kW)</span>
+          <span class="badge" style="background:#fee2e2; color:#b91c1c;">Peak 18:00 - 22:00</span>
+        </h2>
+        <div class="chart-box" id="load-chart"></div>
+        <p style="font-size:12px; color:var(--mute); margin-top:10px;">
+          Moving ~22 kW flexible induction & air compressor load from evening peak to off-peak (00:00-05:00) yields ₹6,900/month tariff savings.
+        </p>
+      </div>
+    </div>
+
+    <!-- Row 3: Working Capital, TReDS & Approvals -->
+    <div class="grid-2">
+      <div class="card">
+        <h2>
+          <span>Receivables & TReDS Liquidity Status</span>
+          <span class="badge">RBI Regulated</span>
+        </h2>
+        <table>
+          <tr>
+            <td>Overdue Receivables</td>
+            <td><b id="d-overdue">₹6,80,000</b></td>
+          </tr>
+          <tr>
+            <td>Average Overdue Days</td>
+            <td><b id="d-days">47 days</b></td>
+          </tr>
+          <tr>
+            <td>TReDS Discounting Best Bid</td>
+            <td><span style="color:var(--brand); font-weight:700;">State Bank of India @ 8.15%</span></td>
+          </tr>
+          <tr>
+            <td>Cash Settlement Speed</td>
+            <td>Within 24 hours (T+1)</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>
+          <span>Pending Owner Approvals</span>
+          <span class="badge" id="appr-badge">0 Pending</span>
+        </h2>
+        <div id="approvals-list" style="font-size:13px; color:var(--mute);">
+          No pending approvals requiring signature.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function loadDashboard() {
+      try {
+        var token = localStorage.getItem('bharatsetu_token') || '';
+        var headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+        var r = await fetch('/api/dashboard/owner', { headers: headers });
+        var data = await r.json();
+
+        document.getElementById('txt-unit').textContent = data.enterprise_name + ' · ' + data.city;
+        document.getElementById('d-money').textContent = '₹' + Math.round(data.impact_kpis.money_saved_per_year_rs).toLocaleString('en-IN');
+        document.getElementById('d-kwh').textContent = Math.round(data.impact_kpis.kwh_cut_per_month).toLocaleString('en-IN') + ' kWh';
+        document.getElementById('d-co2').textContent = data.impact_kpis.co2_cut_tco2e_per_month.toFixed(2) + ' tCO2e';
+        document.getElementById('d-hours').textContent = data.impact_kpis.hours_saved.toFixed(1) + ' hrs';
+
+        document.getElementById('d-overdue').textContent = '₹' + (data.working_capital_and_loans.overdue_receivables_rs || 0).toLocaleString('en-IN');
+        document.getElementById('d-days').textContent = (data.working_capital_and_loans.overdue_days || 0) + ' days';
+
+        // Defect rate bar chart
+        var dChart = document.getElementById('defect-chart');
+        dChart.innerHTML = '';
+        (data.defect_history || []).forEach(function(item) {
+          var col = document.createElement('div');
+          col.className = 'bar-col';
+          var heightPct = (item.defect_rate_pct / 5.5) * 100;
+          col.innerHTML = '<span class="bar-val">' + item.defect_rate_pct + '%</span>' +
+                          '<div class="bar" style="height:' + heightPct + '%;"></div>' +
+                          '<span class="bar-label">' + item.month + '</span>';
+          dChart.appendChild(col);
+        });
+
+        // Load curve chart (sampled every 4 hours for readability)
+        var lChart = document.getElementById('load-chart');
+        lChart.innerHTML = '';
+        var loadSample = (data.load_profile_24h || []).filter(function(x, idx) { return idx % 3 === 0; });
+        loadSample.forEach(function(p) {
+          var col = document.createElement('div');
+          col.className = 'bar-col';
+          var isPeak = parseInt(p.hour) >= 18 && parseInt(p.hour) <= 22;
+          var heightPct = (p.kw / 110) * 100;
+          col.innerHTML = '<span class="bar-val">' + p.kw + '</span>' +
+                          '<div class="bar" style="height:' + heightPct + '%; background:' + (isPeak ? '#ef4444' : '#0f6b57') + ';"></div>' +
+                          '<span class="bar-label">' + p.hour + '</span>';
+          lChart.appendChild(col);
+        });
+
+        // Approvals
+        var pList = data.working_capital_and_loans.pending_items || [];
+        document.getElementById('appr-badge').textContent = pList.length + ' Pending';
+        var appDiv = document.getElementById('approvals-list');
+        if (pList.length > 0) {
+          appDiv.innerHTML = '';
+          pList.forEach(function(p) {
+            var itemDiv = document.createElement('div');
+            itemDiv.style.padding = '8px 0';
+            itemDiv.style.borderBottom = '1px solid var(--line)';
+            itemDiv.innerHTML = '<b>' + p.kind.replace(/_/g, ' ').toUpperCase() + '</b> (₹' + (p.payload.amount_rs || 0).toLocaleString('en-IN') + ')' +
+                                '<div style="margin-top:4px;"><a href="/" class="btn" style="padding:2px 10px; font-size:11px;">Review on Chat</a></div>';
+            appDiv.appendChild(itemDiv);
+          });
+        }
+      } catch (err) {
+        console.error('Error loading dashboard:', err);
+      }
+    }
+    loadDashboard();
+  </script>
+</body>
+</html>

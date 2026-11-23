@@ -1,0 +1,51 @@
+{
+  "source": "Madhya Pradesh Industrial Development Corporation (MPIDC) Auto Cluster Buyer Directory",
+  "last_verified": "2026-01-15",
+  "buyers": [
+    {
+      "id": "buyer_01",
+      "name": "VE Commercial Vehicles (Eicher)",
+      "cluster": "Pithampur Auto Cluster",
+      "city": "Pithampur, Dhar",
+      "procures": ["CNC machined pins", "suspension brackets", "engine mounts"],
+      "payment_terms": "45 days via TReDS",
+      "annual_procurement_cr": 45.0,
+      "contact_channel": "ONDC B2B / Supplier Portal"
+    },
+    {
+      "id": "buyer_02",
+      "name": "Force Motors Ltd",
+      "cluster": "Pithampur Sector 1",
+      "city": "Pithampur",
+      "procures": ["forged flanges", "precision shafts", "stamping brackets"],
+      "payment_terms": "30 days letter of credit / TReDS",
+      "annual_procurement_cr": 28.5,
+      "contact_channel": "ONDC B2B / GeM"
+    },
+    {
+      "id": "buyer_03",
+      "name": "Mahindra & Mahindra Auto Hub",
+      "cluster": "Dewas Industrial Area",
+      "city": "Dewas",
+      "procures": ["brake disc flanges", "transmission housings", "fasteners"],
+      "payment_terms": "45 days MSME Samadhaan compliant",
+      "annual_procurement_cr": 60.0,
+      "contact_channel": "ONDC B2B / GeM"
+    },
+    {
+      "id": "buyer_04",
+      "name": "Avtec Ltd (Power Train Components)",
+      "cluster": "Pithampur Sector 3",
+      "city": "Pithampur",
+      "procures": ["cylinder head machining", "crankcase bolts", "precision spacers"],
+      "payment_terms": "30 days net",
+      "annual_procurement_cr": 35.0,
+      "contact_channel": "GeM / B2B Matchmaking"
+    }
+  ],
+  "ondc_categories": [
+    {"code": "IND-AUTO-01", "name": "Precision Machined Components", "typical_hsn": "8483"},
+    {"code": "IND-AUTO-02", "name": "Sheet Metal Stampings & Pressed Parts", "typical_hsn": "8708"},
+    {"code": "IND-AUTO-03", "name": "Ferrous & Non-Ferrous Castings", "typical_hsn": "7325"}
+  ]
+}

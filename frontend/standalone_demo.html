@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BharatSetu AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1ee;--surf:#fff;--ink:#17231f;--mute:#5d6b65;--line:#d5dcd7;--brand:#0f6b57;--brand2:#e8f3ef;--me:#d9f2c9;--warn:#b4570a;--bad:#b3261e;--ok:#1b7a3d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1512;--surf:#17211d;--ink:#e6efe9;--mute:#9bb0a6;--line:#2b3a34;--brand:#3fbf9f;--brand2:#18322b;--me:#1f4a2c;--warn:#f0a35c;--bad:#ff8a80;--ok:#6fd392;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1512;--surf:#17211d;--ink:#e6efe9;--mute:#9bb0a6;--line:#2b3a34;--brand:#3fbf9f;--brand2:#18322b;--me:#1f4a2c;--warn:#f0a35c;--bad:#ff8a80;--ok:#6fd392;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 Mukta,"Noto Sans Devanagari",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--brand);color:#fff;flex-wrap:wrap}
+header h1{margin:0;font-size:20px;font-weight:800}header p{margin:0;font-size:13px;opacity:.9;flex:1;min-width:180px}
+button{font:inherit;cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #f5b84a;outline-offset:2px}
+.lang{background:#ffffff26;color:#fff;border:1px solid #ffffff66;border-radius:999px;padding:3px 14px}
+main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;padding:16px;max-width:1200px;margin:0 auto}
+@media(max-width:820px){main{grid-template-columns:1fr}}
+.chat{background:var(--surf);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;height:min(78vh,720px);overflow:hidden}
+#msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--brand2)}
+.m{max-width:88%;padding:8px 12px;border-radius:12px;background:var(--surf);border:1px solid var(--line);word-wrap:break-word}
+.m.me{align-self:flex-end;background:var(--me);border-color:transparent}
+.trace{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}.trace span{font-size:12px;background:var(--brand2);color:var(--brand);border-radius:6px;padding:0 7px;font-weight:600}
+.m h4{margin:2px 0 4px;font-size:15px}.m ul{margin:4px 0;padding-left:18px}.m p{margin:4px 0}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;border-top:1px solid var(--line)}
+.chip{border:1px solid var(--brand);color:var(--brand);background:transparent;border-radius:999px;padding:2px 12px;font-size:13px}
+.chip:hover{background:var(--brand2)}
+form,.bar{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+input[type=text]{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:999px;padding:6px 16px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--brand);border:1px solid var(--brand)}.btn.bad{background:var(--bad)}
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:14px}
+.card h2{margin:0 0 8px;font-size:16px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi b{display:block;font-size:26px;font-weight:800;line-height:1.1;color:var(--brand)}.kpi small{color:var(--mute)}
+svg{max-width:100%;height:auto;display:block}
+#log{list-style:none;margin:0;padding:0;max-height:210px;overflow-y:auto;font-size:13px}
+#log li{padding:5px 0;border-bottom:1px solid var(--line)}#log time{color:var(--mute);margin-right:6px}
+.tag{font-size:11px;border-radius:5px;padding:0 6px;background:var(--brand2);color:var(--brand);margin-left:4px;font-weight:600}
+.tag.h{background:#f5b84a33;color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:3px 6px;border-bottom:1px solid var(--line)}
+.note{font-size:12px;color:var(--mute);margin:6px 0 0}
+.verdict{font-weight:800}.ok{color:var(--ok)}.no{color:var(--bad)}
+canvas{max-width:100%;border-radius:8px;border:1px solid var(--line)}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body>
+<header><h1>BharatSetu AI</h1><p id="sub"></p><button class="lang" id="lang" aria-label="Switch language">हिन्दी</button></header>
+<main>
+<section class="chat" aria-label="Chat with Setu">
+ <div id="msgs" aria-live="polite"></div>
+ <div class="chips" id="chips"></div>
+ <form id="f"><input type="text" id="q" autocomplete="off" aria-label="Message"><button type="button" class="btn ghost" id="mic" aria-label="Speak">🎤</button><button class="btn" id="send"></button></form>
+</section>
+<aside class="side">
+ <div class="card"><h2 id="t1"></h2><div class="kpis">
+  <div class="kpi"><b id="k1">₹0</b><small id="l1"></small></div>
+  <div class="kpi"><b id="k2">0</b><small id="l2"></small></div>
+  <div class="kpi"><b id="k3">0</b><small id="l3"></small></div></div>
+  <p class="note" id="biz"></p></div>
+ <div class="card"><h2 id="t2"></h2><svg id="chart" viewBox="0 0 480 150" role="img" aria-label="24 hour load profile"></svg><p class="note" id="cn"></p></div>
+ <div class="card"><h2 id="t3"></h2><canvas id="cv" width="360" height="200" hidden></canvas><div id="qr"></div>
+  <div class="bar" style="padding:8px 0 0;border:0"><button class="btn ghost" id="sample"></button><label class="btn" style="cursor:pointer"><span id="up"></span><input type="file" id="file" accept="image/*" hidden></label></div></div>
+ <div class="card"><h2 id="t4"></h2><ul id="log"></ul></div>
+</aside></main>
+<script>
+(function(){
+var L='en',done={},S={rs:0,kwh:0,hrs:0};
+var D={name:'Sharma Auto Components, Pithampur',kwh:18400,grid:0.71,tariff:7.2,
+ load:[30,28,27,27,28,34,45,60,72,78,80,82,80,78,76,74,72,76,92,96,90,80,56,40]};
+var T={
+ en:{sub:'Your AI operations team: compliance, finance, energy, quality. Demo uses simulated GST, Account Aggregator and meter data.',send:'Send',ph:'Ask Setu in Hindi or English…',
+  k:['saved per year','kWh cut per month','hours saved'],t:['Impact dashboard','Daily load (kW): before and after shifting','Quality agent: defect inspection','Audit trail (consent and approvals)'],
+  sample:'Try sample part',up:'Upload photo',cn:'Run the Energy agent to see the shifted load.',
+  hi:'Namaste! I am Setu, the orchestrator for '+'Sharma Auto Components. Ask me about your carbon report, loans and schemes, defects, or why profit dropped.',
+  chips:['Export order needs a carbon report','Why was my profit low this month?','Which subsidies can I get?','Check GST and compliance deadlines','Inspect a part for defects'],
+  need:'Upload a photo of the part, or tap “Try sample part” on the right.'},
+ hi:{sub:'आपकी AI ऑपरेशन्स टीम: कंप्लायंस, फाइनेंस, ऊर्जा, क्वालिटी। डेमो में GST, AA और मीटर डेटा नकली (सिम्युलेटेड) है।',send:'भेजें',ph:'सेतु से हिंदी या English में पूछें…',
+  k:['सालाना बचत','kWh प्रति माह कम','घंटे बचे'],t:['प्रभाव डैशबोर्ड','दैनिक लोड (kW): शिफ्ट से पहले और बाद','क्वालिटी एजेंट: दोष जाँच','ऑडिट ट्रेल (सहमति और मंज़ूरी)'],
+  sample:'सैंपल पार्ट आज़माएँ',up:'फोटो अपलोड',cn:'शिफ्ट किया लोड देखने के लिए एनर्जी एजेंट चलाएँ।',
+  hi:'नमस्ते! मैं सेतु हूँ, शर्मा ऑटो कंपोनेंट्स का ऑर्केस्ट्रेटर। कार्बन रिपोर्ट, लोन, सब्सिडी, दोष जाँच या मुनाफ़े के बारे में पूछें।',
+  chips:['एक्सपोर्ट ऑर्डर के लिए कार्बन रिपोर्ट चाहिए','इस महीने मुनाफ़ा कम क्यों रहा?','कौन सी सब्सिडी मिल सकती है?','GST और कंप्लायंस की तारीखें','पार्ट की दोष जाँच करें'],
+  need:'पार्ट की फोटो अपलोड करें या दाईं ओर “सैंपल पार्ट” दबाएँ।'}};
+var $=function(i){return document.getElementById(i)};
+function t(){return T[L]}
+function fmt(n){return n>=100000?'₹'+(n/100000).toFixed(1)+'L':'₹'+Math.round(n).toLocaleString('en-IN')}
+function paint(){var x=t();$('sub').textContent=x.sub;$('send').textContent=x.send;$('q').placeholder=x.ph;
+ ['l1','l2','l3'].forEach(function(id,i){$(id).textContent=x.k[i]});
+ ['t1','t2','t3','t4'].forEach(function(id,i){$(id).textContent=x.t[i]});
+ $('sample').textContent=x.sample;$('up').textContent=x.up;$('lang').textContent=L==='en'?'हिन्दी':'English';document.documentElement.lang=L;
+ $('chips').innerHTML='';x.chips.forEach(function(c){var b=document.createElement('button');b.className='chip';b.type='button';b.textContent=c;b.onclick=function(){ask(c)};$('chips').appendChild(b)});
+ $('k1').textContent=fmt(S.rs);$('k2').textContent=Math.round(S.kwh).toLocaleString('en-IN');$('k3').textContent=S.hrs.toFixed(1);
+ $('biz').textContent=D.name+' · '+D.kwh.toLocaleString('en-IN')+' kWh/month';
+ if(!done.energy)$('cn').textContent=x.cn}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function say(html,me,agents){var d=document.createElement('div');d.className='m'+(me?' me':'');
+ d.innerHTML=(agents?'<div class="trace">'+agents.map(function(a){return '<span>'+a+'</span>'}).join('')+'</div>':'')+html;
+ $('msgs').appendChild(d);$('msgs').scrollTop=1e9;return d}
+function log(agent,txt,human){var li=document.createElement('li');var n=new Date();
+ li.innerHTML='<time>'+n.toTimeString().slice(0,5)+'</time><b>'+agent+'</b> '+esc(txt)+(human?'<span class="tag h">human approval</span>':'<span class="tag">consent logged</span>');
+ $('log').insertBefore(li,$('log').firstChild)}
+function gain(key,rs,kwh,hrs){if(done[key])return;done[key]=1;S.rs+=rs;S.kwh+=kwh;S.hrs+=hrs;paint()}
+function chart(shift){var h='',max=100,w=480/24,sh=D.load.slice();
+ if(shift){for(var i=18;i<22;i++){sh[i]=D.load[i]-22}for(var j=0;j<5;j++){sh[j]=D.load[j]+22}}
+ for(var i=0;i<24;i++){var a=D.load[i]/max*120,b=sh[i]/max*120;
+  h+='<rect x="'+(i*w+2)+'" y="'+(130-a)+'" width="'+(w-4)+'" height="'+a+'" fill="var(--line)"/>';
+  if(shift)h+='<rect x="'+(i*w+2)+'" y="'+(130-b)+'" width="'+(w-4)+'" height="'+b+'" fill="var(--brand)" opacity=".85"/>'}
+ h+='<text x="2" y="146" font-size="10" fill="var(--mute)">0h</text><text x="228" y="146" font-size="10" fill="var(--mute)">12h</text><text x="452" y="146" font-size="10" fill="var(--mute)">23h</text>';
+ h+='<rect x="'+(18*w)+'" y="4" width="'+(4*w)+'" height="6" fill="var(--warn)"/><text x="'+(18*w-2)+'" y="22" font-size="10" fill="var(--warn)">peak 18-22h</text>';
+ $('chart').innerHTML=h}
+function route(q){var s=q.toLowerCase(),r=[];
+ function has(a){return a.some(function(k){return s.indexOf(k)>-1})}
+ if(has(['profit','मुनाफ','margin','loss'])) return 'profit';
+ if(has(['carbon','कार्बन','cbam','energy','बिजली','solar','power','emission','export','एक्सपोर्ट'])) return 'energy';
+ if(has(['scheme','subsid','सब्सिडी','योजना','loan','लोन','ऋण','cgtmse','credit'])) return 'scheme';
+ if(has(['gst','complian','कंप्लायंस','deadline','तारीख','udyam','pollution'])) return 'comply';
+ if(has(['defect','quality','दोष','inspect','जाँच','क्वालिटी','scratch','crack'])) return 'quality';
+ return 'help'}
+function energy(){var co2=D.kwh*D.grid/1000,solarKwh=40*4.5*30,solarRs=solarKwh*D.tariff,shiftRs=3000*(8.5-6.2),cut=solarKwh;
+ chart(true);$('cn').textContent=L==='en'?'Grey: today. Green: after moving 22 kW of press load from the 18-22h peak to 0-5h.':'ग्रे: आज। हरा: 22 kW प्रेस लोड को 18-22 बजे के पीक से 0-5 बजे में ले जाने के बाद।';
+ gain('energy',(solarRs+shiftRs)*12,cut,2.5);log('Energy Agent','Read smart-meter data (simulated), built carbon report');
+ var rep='<table><tr><th>'+(L==='en'?'Item':'विवरण')+'</th><th></th></tr><tr><td>'+(L==='en'?'Electricity':'बिजली')+'</td><td>'+D.kwh.toLocaleString('en-IN')+' kWh</td></tr><tr><td>Scope 2 (grid factor '+D.grid+')</td><td><b>'+co2.toFixed(1)+' tCO₂e / '+(L==='en'?'month':'माह')+'</b></td></tr><tr><td>'+(L==='en'?'Rooftop solar 40 kWp':'रूफटॉप सोलर 40 kWp')+'</td><td>−'+solarKwh.toLocaleString('en-IN')+' kWh, '+fmt(solarRs)+'/'+(L==='en'?'mo':'माह')+'</td></tr><tr><td>'+(L==='en'?'Load shifting':'लोड शिफ्टिंग')+'</td><td>'+fmt(shiftRs)+'/'+(L==='en'?'mo':'माह')+'</td></tr></table>';
+ var tx=L==='en'?{h:'Carbon report ready (CBAM-style)',n:'Draft for your buyer. Grid factor is an assumed value; a verifier must confirm before submission.',ask:'Find schemes for solar'}:{h:'कार्बन रिपोर्ट तैयार (CBAM शैली)',n:'यह आपके खरीदार के लिए ड्राफ्ट है। ग्रिड फैक्टर अनुमानित है; जमा करने से पहले सत्यापन ज़रूरी है।',ask:'सोलर के लिए सब्सिडी खोजें'};
+ return {a:['Setu','Energy Agent','Meter data (mock)'],h:'<h4>'+tx.h+'</h4>'+rep+'<p class="note">'+tx.n+'</p>',next:tx.ask}}
+function scheme(){var rows=[['CGTMSE',L==='en'?'Collateral-free credit guarantee':'बिना गारंटी लोन कवर','92%'],['MP MSME Promotion Policy',L==='en'?'Capital subsidy on new machinery':'नई मशीनरी पर पूंजी सब्सिडी','86%'],['ZED Certification',L==='en'?'Quality and sustainability subsidy':'क्वालिटी/सस्टेनेबिलिटी सब्सिडी','81%'],['TReDS',L==='en'?'Discount overdue invoices early':'बकाया बिल जल्दी भुनाएँ','78%']];
+ log('Scheme Agent','Matched Udyam profile to '+rows.length+' schemes');log('Finance Agent','Fetched bank statements via Account Aggregator (consent, mock)');
+ gain('scheme',60000,0,4);
+ var tb='<table><tr><th>'+(L==='en'?'Scheme':'योजना')+'</th><th>'+(L==='en'?'Benefit':'लाभ')+'</th><th>'+(L==='en'?'Match':'मैच')+'</th></tr>'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>'}).join('')+'</table>';
+ var txt=L==='en'?{h:'4 schemes match your profile',p:'Working-capital loan of ₹15L is pre-filled from your GST and bank data. Financial actions need your approval:',n:'Illustrative matches. Verify terms on official portals.'}:{h:'आपकी प्रोफ़ाइल से 4 योजनाएँ मेल खाती हैं',p:'GST और बैंक डेटा से ₹15L वर्किंग-कैपिटल लोन आवेदन भर दिया है। वित्तीय कदम के लिए आपकी मंज़ूरी चाहिए:',n:'उदाहरण मिलान। शर्तें आधिकारिक पोर्टल पर जाँचें।'};
+ return {a:['Setu','Scheme Agent','Finance Agent','AA (mock)'],h:'<h4>'+txt.h+'</h4>'+tb+'<p>'+txt.p+'</p><button class="btn" data-act="apply">'+(L==='en'?'Approve application':'आवेदन मंज़ूर करें')+'</button> <button class="btn ghost" data-act="deny">'+(L==='en'?'Not now':'अभी नहीं')+'</button><p class="note">'+txt.n+'</p>'}}
+function comply(){log('Compliance Agent','Checked GST, Udyam, pollution board calendar (mock)');gain('comply',0,0,3);
+ var r=L==='en'?[['GSTR-3B','due in 5 days'],['Udyam update','valid'],['Pollution board consent','renew in 38 days'],['PF/ESI return','due in 12 days']]:[['GSTR-3B','5 दिन में देय'],['उद्यम अपडेट','मान्य'],['प्रदूषण बोर्ड सहमति','38 दिन में नवीनीकरण'],['PF/ESI रिटर्न','12 दिन में देय']];
+ return {a:['Setu','Compliance Agent','GST (mock)'],h:'<h4>'+(L==='en'?'Compliance calendar':'कंप्लायंस कैलेंडर')+'</h4><ul>'+r.map(function(x){return '<li><b>'+x[0]+'</b>: '+x[1]+'</li>'}).join('')+'</ul>'}}
+function profit(){log('Setu','Asked Energy, Finance, Quality agents to explain margin');gain('profit',0,0,1.5);
+ var r=L==='en'?['Power cost up 14%: peak-hour usage. Shifting load can win back about '+fmt(6900)+'/month.','₹6.8L of invoices are 47 days overdue, so working capital is blocked. TReDS discounting can release it.','Rejections were 4.1%, about ₹1.1L of scrap. Run the quality inspection earlier in the line.']:['बिजली खर्च 14% बढ़ा: पीक घंटों में उपयोग। लोड शिफ्ट से लगभग '+fmt(6900)+'/माह वापस आ सकता है।','₹6.8L के बिल 47 दिन से बकाया हैं, इसलिए वर्किंग कैपिटल फँसी है। TReDS से यह निकल सकता है।','रिजेक्शन 4.1% रहा, यानी लगभग ₹1.1L का स्क्रैप। क्वालिटी जाँच लाइन में पहले करें।'];
+ return {a:['Setu','Energy Agent','Finance Agent','Quality Agent'],h:'<h4>'+(L==='en'?'Why profit was low: 3 causes':'मुनाफ़ा कम क्यों: 3 कारण')+'</h4><ul>'+r.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'}}
+function reply(q){var k=route(q),o;
+ if(k==='energy')o=energy();else if(k==='scheme')o=scheme();else if(k==='comply')o=comply();else if(k==='profit')o=profit();
+ else if(k==='quality')o={a:['Setu','Quality Agent'],h:'<p>'+t().need+'</p>'};
+ else o={a:['Setu'],h:'<p>'+(L==='en'?'I can help with carbon reports, schemes and loans, compliance, defects, or profit analysis. Try one of the suggestions below.':'मैं कार्बन रिपोर्ट, योजनाएँ और लोन, कंप्लायंस, दोष जाँच या मुनाफ़ा विश्लेषण में मदद कर सकता हूँ। नीचे के सुझाव आज़माएँ।')+'</p>'};
+ var m=say('<em>…</em>',false,o.a);setTimeout(function(){m.innerHTML='<div class="trace">'+o.a.map(function(a){return '<span>'+a+'</span>'}).join('')+'</div>'+o.h;$('msgs').scrollTop=1e9},700)}
+function ask(q){if(!q.trim())return;say(esc(q),true);reply(q);$('q').value=''}
+$('f').onsubmit=function(e){e.preventDefault();ask($('q').value)};
+$('lang').onclick=function(){L=L==='en'?'hi':'en';paint();say(t().hi)};
+$('msgs').addEventListener('click',function(e){var a=e.target.getAttribute('data-act');if(!a)return;e.target.parentNode.querySelectorAll('button[data-act]').forEach(function(b){b.disabled=true});
+ if(a==='apply'){log('Finance Agent','Submitted ₹15L working-capital application (simulated)',true);gain('apply',0,0,3);say(L==='en'?'Approved. Application submitted with your consent record. Estimated decision: 48 hours.':'मंज़ूर। आपकी सहमति के साथ आवेदन जमा हुआ। अनुमानित निर्णय: 48 घंटे।',false,['Finance Agent'])}
+ else{log('Finance Agent','Owner declined application',true);say(L==='en'?'Okay, nothing was submitted.':'ठीक है, कुछ जमा नहीं किया गया।',false,['Finance Agent'])}});
+$('mic').onclick=function(){var R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){say(L==='en'?'Voice input is not supported in this browser. Type instead.':'इस ब्राउज़र में वॉइस इनपुट उपलब्ध नहीं है। टाइप करें।');return}
+ try{var r=new R();r.lang=L==='hi'?'hi-IN':'en-IN';r.onresult=function(e){ask(e.results[0][0].transcript)};r.start()}catch(x){}};
+/* Quality agent: simple pixel-anomaly detector (demo stand-in for YOLO) */
+function inspect(img){var c=$('cv'),g=c.getContext('2d');c.hidden=false;var w=c.width,h=c.height;g.drawImage(img,0,0,w,h);
+ var d=g.getImageData(0,0,w,h).data,cs=20,gx=w/cs,gy=h/cs,m=[],sum=0,sq=0;
+ for(var y=0;y<gy;y++)for(var x=0;x<gx;x++){var v=0,n=0,v2=0;for(var j=0;j<cs;j+=2)for(var i=0;i<cs;i+=2){var p=((y*cs+j)*w+x*cs+i)*4,l=.3*d[p]+.59*d[p+1]+.11*d[p+2];v+=l;v2+=l*l;n++}
+  var mu=v/n,sd=Math.sqrt(Math.max(0,v2/n-mu*mu));m.push({x:x,y:y,mu:mu,sd:sd});sum+=mu;sq+=mu*mu}
+ var N=m.length,mean=sum/N,sdv=Math.sqrt(Math.max(1,sq/N-mean*mean)),fl=[];
+ m.forEach(function(c){var z=Math.abs(c.mu-mean)/sdv;if(z>2.2||c.sd>38)fl.push({x:c.x,y:c.y,z:Math.max(z,c.sd/30)})});
+ fl.sort(function(a,b){return b.z-a.z});fl=fl.slice(0,4);g.strokeStyle='#e5322d';g.lineWidth=2;fl.forEach(function(f){g.strokeRect(f.x*cs-2,f.y*cs-2,cs+4,cs+4)});
+ var fail=fl.length>0,score=Math.min(99,Math.round(fl.length*22+(fl[0]?fl[0].z*6:0)));
+ log('Quality Agent',(fail?fl.length+' suspect regions':'no defects')+' found in inspected photo');gain('qa',fail?25000:15000,0,1);
+ $('qr').innerHTML='<p><span class="verdict '+(fail?'no':'ok')+'">'+(fail?(L==='en'?'FAIL: review part':'फेल: पार्ट जाँचें'):(L==='en'?'PASS':'पास'))+'</span> · '+(L==='en'?'defect score ':'दोष स्कोर ')+score+'/100 · '+fl.length+' '+(L==='en'?'regions flagged':'क्षेत्र चिह्नित')+'</p><p class="note">'+(L==='en'?'Demo uses a pixel-anomaly check. Swap in a trained YOLO model for production.':'डेमो में पिक्सेल-विसंगति जाँच है। प्रोडक्शन के लिए प्रशिक्षित YOLO मॉडल लगाएँ।')+'</p>'}
+$('file').onchange=function(e){var f=e.target.files[0];if(!f)return;var img=new Image();img.onload=function(){inspect(img)};img.src=URL.createObjectURL(f)};
+$('sample').onclick=function(){var c=document.createElement('canvas');c.width=360;c.height=200;var g=c.getContext('2d');
+ var gr=g.createLinearGradient(0,0,360,200);gr.addColorStop(0,'#9aa2a8');gr.addColorStop(1,'#b9c0c5');g.fillStyle=gr;g.fillRect(0,0,360,200);
+ for(var i=0;i<900;i++){g.fillStyle='rgba(0,0,0,'+Math.random()*.05+')';g.fillRect(Math.random()*360,Math.random()*200,2,2)}
+ g.strokeStyle='#4a4f53';g.lineWidth=3;g.beginPath();g.moveTo(210,60);g.lineTo(290,150);g.stroke();g.fillStyle='#2e3235';g.beginPath();g.arc(120,130,9,0,7);g.fill();
+ inspect(c)};
+paint();chart(false);say(t().hi);
+})();
+</script></body></html>

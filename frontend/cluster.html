@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>District Industrial Cluster Observatory · BharatSetu AI</title>
+  <style>
+    :root {
+      --bg: #f4f7f5;
+      --surface: #ffffff;
+      --ink: #17231f;
+      --mute: #5d6b65;
+      --line: #d5dcd7;
+      --brand: #0f6b57;
+      --brand-hover: #0a4f40;
+      --tint: #e8f3ef;
+      --accent: #d97706;
+      --radius: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1411;
+        --surface: #16201b;
+        --ink: #e6efe9;
+        --mute: #9bb0a6;
+        --line: #293831;
+        --brand: #2ec49c;
+        --tint: #142b23;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14.5px/1.5 system-ui, -apple-system, sans-serif;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--brand);
+    }
+    .badge {
+      font-size: 11px;
+      background: var(--tint);
+      color: var(--brand);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .badge-alert {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+    select, button, .btn {
+      background: var(--brand);
+      color: #fff;
+      border: 0;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    select {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 12px;
+    }
+    .btn-secondary {
+      background: var(--tint);
+      color: var(--brand);
+      border: 1px solid var(--line);
+    }
+    main {
+      padding: 24px;
+      max-width: 1240px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    .kpi-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--brand);
+      margin: 4px 0;
+    }
+    .privacy-box {
+      border: 2px dashed #f59e0b;
+      background: #fffbeb;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span>🏛️</span>
+      <div>
+        <span>District MSME Cluster Observatory</span>
+        <span class="badge">Madhya Pradesh Industrial Corridor</span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <label style="font-size:13px; font-weight:600;">Cluster Filter:</label>
+      <select id="cluster-select" onchange="loadCluster()">
+        <option value="Pithampur Auto Cluster">Pithampur Auto Cluster (Dhar/Indore)</option>
+        <option value="Palda Food & Engineering Cluster">Palda Food & Engineering Cluster (Indore)</option>
+        <option value="All">All MP Industrial Corridors</option>
+      </select>
+      <a href="/" class="btn btn-secondary">💬 Setu Copilot</a>
+      <a href="/dashboard" class="btn btn-secondary">📊 Owner Dashboard</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Privacy Guard Header Banner -->
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h3 style="margin:0 0 4px;" id="disp-cluster-name">Pithampur Auto Cluster</h3>
+        <small style="color:var(--mute);" id="disp-privacy-status">k-Anonymity Verified (Cohort N >= 5) · Strict Differential Privacy Active</small>
+      </div>
+      <span class="badge" id="disp-cohort-badge">Cohort: 6 Units</span>
+    </div>
+
+    <!-- Privacy Alert (Shown when cohort < 5) -->
+    <div class="privacy-box" id="privacy-warning" style="display:none;">
+      <h3 style="margin:0 0 8px;">🛡️ Privacy Protection Active: Single MSME Deanonymization Guard</h3>
+      <p style="margin:0; font-size:14px;" id="privacy-warning-msg">
+        Aggregation suppressed: Selected cluster cohort has fewer than 5 active enterprises.
+        Individual operational data cannot be shown to protect commercial privacy.
+      </p>
+    </div>
+
+    <!-- Aggregated Content (Shown when cohort >= 5) -->
+    <div id="aggregate-content" style="display:flex; flex-direction:column; gap:20px;">
+      <div class="grid-4">
+        <div class="card">
+          <small style="color:var(--mute);">Cohort Size</small>
+          <div class="kpi-val" id="c-units">0</div>
+          <small style="color:var(--mute);">Active reporting MSMEs</small>
+        </div>
+        <div class="card">
+          <small style="color:var(--mute);">Average Revenue / Unit</small>
+          <div class="kpi-val" id="c-rev">₹0</div>
+          <small style="color:var(--mute);">Monthly turnover</small>
+        </div>
+        <div class="card">
+          <small style="color:var(--mute);">Monthly Cluster Electricity</small>
+          <div class="kpi-val" id="c-kwh">0 kWh</div>
+          <small style="color:var(--mute);">Combined industrial demand</small>
+        </div>
+        <div class="card">
+          <small style="color:var(--mute);">Monthly Scope 2 Carbon</small>
+          <div class="kpi-val" id="c-co2">0.0 tCO2e</div>
+          <small style="color:var(--mute);">EU CBAM export footprint</small>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 12px;">Financial Liquidity & Quality Benchmark</h3>
+        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
+          <div>
+            <p style="margin:6px 0;"><b>Total Overdue Receivables:</b> <span id="c-overdue">₹0</span></p>
+            <p style="margin:6px 0;"><b>TReDS Factoring Liquidity Unlocked:</b> <span style="color:var(--brand); font-weight:700;" id="c-treds">₹0</span></p>
+          </div>
+          <div>
+            <p style="margin:6px 0;"><b>Cluster Average Scrap/Rejection:</b> <span id="c-rejection">0.0%</span></p>
+            <p style="margin:6px 0;"><b>Annual CBAM Exposure:</b> <span id="c-annual-co2">0.0 tCO2e</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function loadCluster() {
+      var sel = document.getElementById('cluster-select').value;
+      try {
+        var r = await fetch('/api/dashboard/cluster?cluster=' + encodeURIComponent(sel));
+        var data = await r.json();
+
+        document.getElementById('disp-cluster-name').textContent = data.cluster_name;
+        document.getElementById('disp-cohort-badge').textContent = 'Cohort: ' + data.cohort_size + ' Units';
+
+        if (data.status === 'PRIVACY_SUPPRESSED') {
+          document.getElementById('disp-privacy-status').textContent = 'Privacy Guard Triggered · Data Suppressed (N < 5)';
+          document.getElementById('disp-cohort-badge').className = 'badge badge-alert';
+          document.getElementById('privacy-warning').style.display = 'block';
+          document.getElementById('privacy-warning-msg').textContent = data.privacy_notice;
+          document.getElementById('aggregate-content').style.display = 'none';
+        } else {
+          document.getElementById('disp-privacy-status').textContent = data.privacy_compliance + ' · Zero PII Disclosed';
+          document.getElementById('disp-cohort-badge').className = 'badge';
+          document.getElementById('privacy-warning').style.display = 'none';
+          document.getElementById('aggregate-content').style.display = 'flex';
+
+          var m = data.aggregated_metrics;
+          document.getElementById('c-units').textContent = m.total_msme_count;
+          document.getElementById('c-rev').textContent = '₹' + Math.round(m.avg_monthly_revenue_rs).toLocaleString('en-IN');
+          document.getElementById('c-kwh').textContent = Math.round(m.total_monthly_electricity_kwh).toLocaleString('en-IN') + ' kWh';
+          document.getElementById('c-co2').textContent = m.total_monthly_scope2_tco2e.toFixed(1) + ' tCO2e';
+          document.getElementById('c-overdue').textContent = '₹' + m.total_overdue_receivables_rs.toLocaleString('en-IN');
+          document.getElementById('c-treds').textContent = '₹' + m.treds_liquidity_unlock_potential_rs.toLocaleString('en-IN');
+          document.getElementById('c-rejection').textContent = m.cluster_avg_rejection_rate_pct.toFixed(2) + '%';
+          document.getElementById('c-annual-co2').textContent = m.annual_scope2_tco2e.toFixed(1) + ' tCO2e/yr';
+        }
+      } catch (e) {
+        console.error('Failed to load cluster:', e);
+      }
+    }
+    loadCluster();
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+env/
+venv/
+ENV/
+
+# Testing & Browser Artifacts
+.pytest_cache/
+screenshots/
+test-results/
+.playwright/
+
+# Database & Local Secrets
+*.db
+*.sqlite3
+.env
+
+# OS Artifacts
+.DS_Store
+Thumbs.db

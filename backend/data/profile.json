@@ -1,0 +1,4 @@
+{"name":"Sharma Auto Components","city":"Pithampur, Indore","sector":"auto components","udyam":"UDYAM-MP-23-0012345","category":"small",
+ "monthly_kwh":18400,"tariff_rs_kwh":7.2,"peak_tariff":8.5,"offpeak_tariff":6.2,"grid_factor_tco2_mwh":0.71,
+ "monthly_revenue_rs":4200000,"overdue_receivables_rs":680000,"overdue_days":47,"rejection_rate_pct":4.1,"scrap_cost_rs":110000,"power_cost_rise_pct":14,
+ "load_kw":[30,28,27,27,28,34,45,60,72,78,80,82,80,78,76,74,72,76,92,96,90,80,56,40]}

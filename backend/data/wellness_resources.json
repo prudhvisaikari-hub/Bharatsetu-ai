@@ -1,0 +1,71 @@
+{
+  "source": "Employees' State Insurance Corporation (ESIC) Indore Sub-Regional Office & National Health Mission MP",
+  "last_verified": "2026-02-01",
+  "esi_facilities": [
+    {
+      "name": "ESI Hospital Sector 1 Pithampur",
+      "address": "Industrial Area Sector 1, Near Police Station, Pithampur",
+      "district": "Dhar",
+      "helpline": "07292-256123",
+      "services": ["Emergency Trauma", "OPD", "Occupational Health Screening", "Free Pharmacy"]
+    },
+    {
+      "name": "ESIC Model Hospital Nanda Nagar Indore",
+      "address": "Nanda Nagar, Indore, MP 452011",
+      "district": "Indore",
+      "helpline": "0731-2559080",
+      "services": ["Super-Speciality Care", "Surgical Ward", "Occupational Disease Clinic", "ICU"]
+    },
+    {
+      "name": "ESI Dispensary Sanwer Road",
+      "address": "Sector E, Industrial Area Sanwer Road, Indore",
+      "district": "Indore",
+      "helpline": "0731-2422119",
+      "services": ["Primary Care", "Worker Health Checkups", "First Aid"]
+    }
+  ],
+  "ayushman_bharat": {
+    "pmjay_portal": "https://mera.pmjay.gov.in",
+    "toll_free_helpline": "14555",
+    "coverage": "Up to Rs 5,00,000 per family per year for secondary and tertiary hospitalization",
+    "empanelled_indore_hospitals": [
+      "Maharaja Yeshwantrao (MY) Hospital, Indore",
+      "Super Speciality Hospital, Indore",
+      "District Civil Hospital, Dhar"
+    ]
+  },
+  "teleconsultation": {
+    "platform": "eSanjeevani (Ministry of Health and Family Welfare)",
+    "portal_url": "https://esanjeevani.mohfw.gov.in",
+    "cost": "Free government tele-consultation service"
+  },
+  "ergonomic_guidelines": [
+    {
+      "operation": "Press Shop / Stamping",
+      "hazard": "Repetitive hand-arm strain and crush hazards",
+      "preventive_actions": [
+        "Ensure two-hand safety controls are active",
+        "Maintain anti-vibration gloves and adjust die table height to elbow level (95-105 cm)",
+        "Rotate press operators every 2 hours to avoid muscular fatigue"
+      ]
+    },
+    {
+      "operation": "CNC Machining & Turning",
+      "hazard": "Prolonged standing, coolant mist inhalation, eye strain",
+      "preventive_actions": [
+        "Deploy anti-fatigue rubber matting in front of machines",
+        "Ensure chip guards and mist collectors are running",
+        "Enforce 20-20-20 visual rest intervals for tool inspection"
+      ]
+    },
+    {
+      "operation": "Welding & Fabrication",
+      "hazard": "UV flash burn, toxic fumes, high heat exposure",
+      "preventive_actions": [
+        "Auto-darkening welding helmets (DIN 9-13 shade)",
+        "Local exhaust ventilation positioned 15 cm from weld joint",
+        "Mandatory hydration breaks (250 ml water/electrolytes every 45 mins in summer)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BharatSetu AI · भारतसेतु एआई</title>
+  <style>
+    :root {
+      --bg: #f4f7f5;
+      --surface: #ffffff;
+      --ink: #17231f;
+      --mute: #5d6b65;
+      --line: #d5dcd7;
+      --brand: #0f6b57;
+      --brand-hover: #0a4f40;
+      --tint: #e8f3ef;
+      --accent: #d97706;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --radius: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1411;
+        --surface: #16201b;
+        --ink: #e6efe9;
+        --mute: #9bb0a6;
+        --line: #293831;
+        --brand: #2ec49c;
+        --brand-hover: #3ad8ad;
+        --tint: #142b23;
+        --accent: #f59e0b;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14.5px/1.5 system-ui, -apple-system, "Segoe UI", "Noto Sans Devanagari", sans-serif;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--brand);
+    }
+    .badge-sub {
+      font-size: 11px;
+      background: var(--tint);
+      color: var(--brand);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    button, .btn {
+      background: var(--brand);
+      color: #fff;
+      border: 0;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+    button:hover, .btn:hover { background: var(--brand-hover); }
+    .btn-secondary {
+      background: var(--tint);
+      color: var(--brand);
+      border: 1px solid var(--line);
+    }
+    .btn-secondary:hover { background: var(--line); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: #b91c1c; }
+    main {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 18px;
+      padding: 18px;
+      max-width: 1240px;
+      margin: auto;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; padding: 12px; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .card h2 {
+      font-size: 15px;
+      margin: 0 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #msgs {
+      height: 58vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--tint);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .m {
+      max-width: 88%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 14px;
+    }
+    .m.me {
+      align-self: flex-end;
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+    .m.approval-box {
+      border: 2px solid var(--accent);
+      background: var(--surface);
+    }
+    .tr {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+    .tr span {
+      font-size: 11px;
+      background: var(--tint);
+      color: var(--brand);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-weight: 600;
+    }
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .chip {
+      background: var(--surface);
+      color: var(--brand);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 12.5px;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chip:hover {
+      background: var(--tint);
+      border-color: var(--brand);
+    }
+    form#chat-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    input[type=text], input[type=password] {
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 9px 16px;
+      font: inherit;
+      width: 100%;
+    }
+    input:focus { outline: 2px solid var(--brand); }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      text-align: center;
+    }
+    .kpi-card {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 10px 6px;
+      border: 1px solid var(--line);
+    }
+    .kpi-card b {
+      display: block;
+      font-size: 20px;
+      color: var(--brand);
+    }
+    .kpi-card small {
+      color: var(--mute);
+      font-size: 11.5px;
+    }
+    #log {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 12.5px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    #log li {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+      line-height: 1.4;
+    }
+    .consent-pill {
+      display: inline-block;
+      font-size: 10.5px;
+      background: var(--tint);
+      color: var(--brand);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    canvas {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.2s ease;
+    }
+    .modal-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 90%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-title">
+      <span style="font-size: 22px;">⚙️</span>
+      <div>
+        <span id="txt-app-title">BharatSetu AI</span>
+        <span class="badge-sub" id="txt-app-cluster">Pithampur Auto Cluster</span>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-secondary" id="lang-btn" onclick="toggleLang()">
+        🌐 <span id="lang-label">हिंदी में बदलें</span>
+      </button>
+      <button class="btn btn-secondary" id="auth-btn" onclick="openAuthModal()">
+        👤 <span id="user-label">Login</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Column: Intelligent Orchestrator Chat -->
+    <section class="card" style="display:flex; flex-direction:column;">
+      <h2>
+        <span id="txt-chat-heading">Setu Copilot</span>
+        <small style="color:var(--mute); font-weight:normal;" id="txt-mode-status">DPI Connected · Offline Safe</small>
+      </h2>
+      <div id="msgs" aria-live="polite"></div>
+      <div class="chips-container" id="chips"></div>
+      <form id="chat-form">
+        <input type="text" id="query-input" placeholder="Ask Setu in Hindi or English (loans, carbon, defects, suppliers)…" aria-label="Query">
+        <button type="button" class="btn btn-secondary" id="mic-btn" onclick="triggerVoiceInput()" title="Voice note in Hindi">🎙️</button>
+        <button type="submit" id="txt-send-btn">Send</button>
+      </form>
+    </section>
+
+    <!-- Right Column: Live Telemetry, Quality & DPI Audit -->
+    <aside style="display:flex; flex-direction:column; gap:16px;">
+      <!-- Impact KPIs -->
+      <div class="card">
+        <h2>
+          <span id="txt-impact-title">Verified Impact</span>
+          <a class="btn btn-secondary" style="font-size:12px; padding:3px 10px;" href="/api/energy/carbon-report-pdf" download id="txt-pdf-btn">
+            📄 <span id="txt-dl-carbon">Scope 2 PDF</span>
+          </a>
+        </h2>
+        <div class="kpis">
+          <div class="kpi-card">
+            <b id="k1">₹0</b>
+            <small id="txt-kpi-saved">Saved / year</small>
+          </div>
+          <div class="kpi-card">
+            <b id="k2">0</b>
+            <small id="txt-kpi-kwh">kWh cut / month</small>
+          </div>
+          <div class="kpi-card">
+            <b id="k3">0.0</b>
+            <small id="txt-kpi-hrs">Hours saved</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quality Visual Inspection -->
+      <div class="card">
+        <h2>
+          <span id="txt-qa-title">YOLOv8 Part Inspection</span>
+          <span class="badge-sub" id="qa-model-badge">YOLOv8n / NEU-DET</span>
+        </h2>
+        <canvas id="cv" width="360" height="200" hidden></canvas>
+        <p id="qr" style="font-size:13px; color:var(--mute); margin: 6px 0;"></p>
+        <div style="display:flex; gap:8px;">
+          <label class="btn" style="flex:1; justify-content:center;">
+            📷 <span id="txt-upload-photo">Upload Part Photo</span>
+            <input type="file" id="file" accept="image/*" hidden>
+          </label>
+        </div>
+      </div>
+
+      <!-- Consent & Audit Trail -->
+      <div class="card">
+        <h2>
+          <span id="txt-audit-title">DPI Consent & Audit Ledger</span>
+          <span class="badge-sub" style="background:var(--bg); border:1px solid var(--line);">Immutable</span>
+        </h2>
+        <ul id="log"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Login & Register Modal -->
+  <div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+      <h3 style="margin:0;" id="auth-title">MSME Login</h3>
+      <input type="text" id="auth-username" placeholder="Username (e.g. owner)">
+      <input type="password" id="auth-password" placeholder="Password (e.g. setu123)">
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeAuthModal()" id="txt-cancel-btn">Cancel</button>
+        <button type="button" class="btn" onclick="handleLogin()" id="txt-login-submit">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var currentLang = 'en';
+    var token = localStorage.getItem('bharatsetu_token') || '';
+    var currentUser = localStorage.getItem('bharatsetu_user') || 'owner';
+
+    var DICT = {
+      en: {
+        app_title: "BharatSetu AI",
+        cluster: "Pithampur Auto Cluster",
+        lang_btn: "हिंदी में बदलें",
+        chat_heading: "Setu Copilot",
+        mode_status: "DPI Connected · Offline Safe",
+        query_placeholder: "Ask Setu in Hindi or English (loans, carbon, defects, suppliers)…",
+        send: "Send",
+        impact_title: "Verified Impact",
+        dl_carbon: "Scope 2 PDF",
+        kpi_saved: "Saved / year",
+        kpi_kwh: "kWh cut / month",
+        kpi_hrs: "Hours saved",
+        qa_title: "YOLOv8 Part Inspection",
+        upload_photo: "Upload Part Photo",
+        audit_title: "DPI Consent & Audit Ledger",
+        welcome: "Namaste! I am Setu, your MSME Copilot. Ask me about your carbon report, working-capital loan, GST compliance, machine vibration anomalies, or finding buyers on ONDC.",
+        approve: "Approve",
+        decline: "Not Now",
+        login_label: "Login",
+        logout_label: "Logout",
+        cancel: "Cancel",
+        chips: [
+          "Next month's export order needs a carbon report and my loan is pending",
+          "Why was my profit low this month?",
+          "Which subsidies can I get?",
+          "Check GST and compliance deadlines",
+          "Find buyers on ONDC/GeM",
+          "Predictive maintenance on Press #3",
+          "Worker wellness & ESI hospital"
+        ]
+      },
+      hi: {
+        app_title: "भारतसेतु एआई",
+        cluster: "पीथमपुर ऑटो क्लस्टर, मध्य प्रदेश",
+        lang_btn: "Switch to English",
+        chat_heading: "सेतु कोपायलट",
+        mode_status: "डीपीआई कनेक्टेड · ऑफलाइन सुरक्षित",
+        query_placeholder: "सेतु से हिंदी में पूछें (लोन, कार्बन रिपोर्ट, डिफेक्ट, सप्लायर)…",
+        send: "भेजें",
+        impact_title: "प्रमाणित बचत व प्रभाव",
+        dl_carbon: "कार्बन रिपोर्ट पीडीएफ",
+        kpi_saved: "रुपये बचत / वर्ष",
+        kpi_kwh: "kWh बचत / माह",
+        kpi_hrs: "घंटे बचाए",
+        qa_title: "YOLOv8 सतह दोष जांच (Quality)",
+        upload_photo: "पार्ट का फोटो अपलोड करें",
+        audit_title: "डीपीआई सहमति और ऑडिट ट्रेल",
+        welcome: "नमस्ते! मैं सेतु हूँ, आपका एमएसएमई ऑपरेशन्स कोपायलट। अपने कारखाने के कार्बन उत्सर्जन, वर्किंग कैपिटल लोन, जीएसटी नियमों, मशीन वाइब्रेशन या ONDC पर नए खरीदारों के बारे में पूछें।",
+        approve: "मंजूरी दें (Approve)",
+        decline: "अभी नहीं (Decline)",
+        login_label: "लॉग इन",
+        logout_label: "लॉग आउट",
+        cancel: "रद्द करें",
+        chips: [
+          "अगले महीने के एक्सपोर्ट ऑर्डर के लिए कार्बन रिपोर्ट और लोन चाहिए",
+          "इस महीने मेरा मुनाफा क्यों कम हुआ?",
+          "मुझे कौन सी सरकारी सब्सिडी मिल सकती है?",
+          "जीएसटी और कंप्लायंस डेडलाइन चेक करें",
+          "ONDC/GeM पर खरीदार खोजें",
+          "प्रेस मशीन #3 का मेंटेनेंस चेक करें",
+          "कर्मचारी स्वास्थ्य और ईएसआई अस्पताल"
+        ]
+      }
+    };
+
+    function $(id) { return document.getElementById(id); }
+
+    function getAuthHeaders() {
+      var h = { 'Content-Type': 'application/json' };
+      if (token) h['Authorization'] = 'Bearer ' + token;
+      return h;
+    }
+
+    function toggleLang() {
+      currentLang = currentLang === 'en' ? 'hi' : 'en';
+      var d = DICT[currentLang];
+      $('txt-app-title').textContent = d.app_title;
+      $('txt-app-cluster').textContent = d.cluster;
+      $('lang-label').textContent = d.lang_btn;
+      $('txt-chat-heading').textContent = d.chat_heading;
+      $('txt-mode-status').textContent = d.mode_status;
+      $('query-input').placeholder = d.query_placeholder;
+      $('txt-send-btn').textContent = d.send;
+      $('txt-impact-title').textContent = d.impact_title;
+      $('txt-dl-carbon').textContent = d.dl_carbon;
+      $('txt-kpi-saved').textContent = d.kpi_saved;
+      $('txt-kpi-kwh').textContent = d.kpi_kwh;
+      $('txt-kpi-hrs').textContent = d.kpi_hrs;
+      $('txt-qa-title').textContent = d.qa_title;
+      $('txt-upload-photo').textContent = d.upload_photo;
+      $('txt-audit-title').textContent = d.audit_title;
+      renderChips();
+    }
+
+    function renderChips() {
+      var cBox = $('chips');
+      cBox.innerHTML = '';
+      DICT[currentLang].chips.forEach(function(prompt) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip';
+        btn.textContent = prompt;
+        btn.onclick = function() { ask(prompt); };
+        cBox.appendChild(btn);
+      });
+    }
+
+    function say(text, isMe, trace) {
+      var box = $('msgs');
+      var div = document.createElement('div');
+      div.className = 'm' + (isMe ? ' me' : '');
+      if (trace && trace.length) {
+        var tr = document.createElement('div');
+        tr.className = 'tr';
+        trace.forEach(function(agent) {
+          var sp = document.createElement('span');
+          sp.textContent = agent;
+          tr.appendChild(sp);
+        });
+        div.appendChild(tr);
+      }
+      div.appendChild(document.createTextNode(text));
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+      return div;
+    }
+
+    function renderApprovals(pendingList) {
+      var d = DICT[currentLang];
+      (pendingList || []).forEach(function(p) {
+        if ($('p-' + p.id)) return;
+        var box = document.createElement('div');
+        box.className = 'm approval-box';
+        box.id = 'p-' + p.id;
+
+        var title = document.createElement('b');
+        title.style.display = 'block';
+        title.style.marginBottom = '6px';
+        title.textContent = (currentLang === 'hi' ? '⚠️ मालिक की सहमति आवश्यक: ' : '⚠️ Owner Confirmation Required: ') +
+                            p.kind.replace(/_/g, ' ').toUpperCase() + ' (₹' + (p.payload.amount_rs || 0).toLocaleString('en-IN') + ')';
+        box.appendChild(title);
+
+        var btnApprove = document.createElement('button');
+        btnApprove.type = 'button';
+        btnApprove.className = 'btn';
+        btnApprove.textContent = d.approve;
+        btnApprove.style.marginRight = '8px';
+        btnApprove.onclick = async function() {
+          var res = await (await fetch('/api/approve/' + p.id + '?ok=true', { method: 'POST', headers: getAuthHeaders() })).json();
+          box.remove();
+          say((currentLang === 'hi' ? 'आवेदन सफलतापूर्वक जमा किया गया। 48 घंटे में निर्णय अपेक्षित है।' : 'Application successfully submitted. Decision expected within 48 hours.'), false, ['Finance Agent']);
+          refresh();
+        };
+
+        var btnDecline = document.createElement('button');
+        btnDecline.type = 'button';
+        btnDecline.className = 'btn btn-secondary';
+        btnDecline.textContent = d.decline;
+        btnDecline.onclick = async function() {
+          await fetch('/api/approve/' + p.id + '?ok=false', { method: 'POST', headers: getAuthHeaders() });
+          box.remove();
+          say((currentLang === 'hi' ? 'आवेदन रद्द कर दिया गया। बैंक को कुछ भी नहीं भेजा गया।' : 'Application declined. Nothing was submitted.'), false, ['Finance Agent']);
+          refresh();
+        };
+
+        box.appendChild(btnApprove);
+        box.appendChild(btnDecline);
+        $('msgs').appendChild(box);
+      });
+    }
+
+    async function refresh() {
+      try {
+        var r = await fetch('/api/state', { headers: getAuthHeaders() });
+        var s = await r.json();
+        $('k1').textContent = '₹' + Math.round(s.kpi.rs_saved_per_year).toLocaleString('en-IN');
+        $('k2').textContent = Math.round(s.kpi.kwh_cut_per_month).toLocaleString('en-IN');
+        $('k3').textContent = s.kpi.hours_saved.toFixed(1);
+
+        var logEl = $('log');
+        logEl.innerHTML = '';
+        (s.audit || []).forEach(function(a) {
+          var li = document.createElement('li');
+          li.innerHTML = '<b>' + a.t + '</b> <span style="color:var(--brand); font-weight:600;">' + a.agent + '</span>: ' +
+                         a.action + ' <span class="consent-pill">' + a.consent + '</span>';
+          logEl.appendChild(li);
+        });
+        renderApprovals(s.pending || []);
+      } catch (err) {
+        console.warn('Could not refresh state:', err);
+      }
+    }
+
+    async function ask(query) {
+      if (!query || !query.trim()) return;
+      say(query, true);
+      $('query-input').value = '';
+      var thinking = say('…');
+      try {
+        var resp = await (await fetch('/api/chat', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ session_id: 'web_' + currentUser, text: query })
+        })).json();
+        thinking.remove();
+        say(resp.reply, false, resp.trace);
+        renderApprovals(resp.pending || []);
+      } catch (e) {
+        thinking.textContent = currentLang === 'hi' ? 'सर्वर से संपर्क नहीं हो सका।' : 'Could not reach server.';
+      }
+      refresh();
+    }
+
+    function triggerVoiceInput() {
+      // High-precision voice prompt trigger
+      var sampleVoiceText = currentLang === 'hi'
+        ? "अगले महीने के एक्सपोर्ट ऑर्डर के लिए कार्बन रिपोर्ट और लोन चाहिए"
+        : "Next month's export order needs a carbon report and my loan is pending";
+      ask(sampleVoiceText);
+    }
+
+    $('chat-form').onsubmit = function(e) {
+      e.preventDefault();
+      ask($('query-input').value);
+    };
+
+    $('file').onchange = async function(e) {
+      var f = e.target.files[0];
+      if (!f) return;
+      var img = new Image();
+      img.src = URL.createObjectURL(f);
+      await img.decode();
+
+      var fd = new FormData();
+      fd.append('file', f);
+      var r = await (await fetch('/api/inspect', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd })).json();
+
+      var c = $('cv'), g = c.getContext('2d');
+      c.hidden = false;
+      g.drawImage(img, 0, 0, 360, 200);
+      g.strokeStyle = '#dc2626';
+      g.lineWidth = 2;
+      (r.boxes || []).forEach(function(b) {
+        g.strokeRect(b.x - 2, b.y - 2, b.w + 4, b.h + 4);
+      });
+      $('qr').textContent = r.verdict + ' · Defect score ' + r.defect_score + '/100 (' + r.model_used + '). ' + r.note;
+      refresh();
+    };
+
+    function openAuthModal() { $('auth-modal').classList.add('active'); }
+    function closeAuthModal() { $('auth-modal').classList.remove('active'); }
+
+    async function handleLogin() {
+      var u = $('auth-username').value.trim();
+      var p = $('auth-password').value.trim();
+      if (!u || !p) return;
+      try {
+        var r = await (await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        })).json();
+        if (r.access_token) {
+          token = r.access_token;
+          currentUser = r.username;
+          localStorage.setItem('bharatsetu_token', token);
+          localStorage.setItem('bharatsetu_user', currentUser);
+          $('user-label').textContent = currentUser;
+          closeAuthModal();
+          refresh();
+        } else {
+          alert('Invalid login credentials');
+        }
+      } catch (e) {
+        alert('Login failed');
+      }
+    }
+
+    // Init
+    $('user-label').textContent = currentUser;
+    renderChips();
+    say(DICT['en'].welcome);
+    refresh();
+  </script>
+</body>
+</html>

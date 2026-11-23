@@ -1,0 +1,5 @@
+[{"id":"cgtmse","name":"CGTMSE credit guarantee","benefit":"Collateral-free credit guarantee for MSME loans","needs":["loan"],"categories":["micro","small","medium"]},
+ {"id":"mp_msme","name":"MP MSME Promotion Policy","benefit":"Capital subsidy on new machinery","needs":["capex"],"categories":["micro","small","medium"]},
+ {"id":"zed","name":"ZED Certification","benefit":"Subsidy on quality and sustainability certification","needs":["quality","export"],"categories":["micro","small","medium"]},
+ {"id":"treds","name":"TReDS invoice discounting","benefit":"Discount overdue invoices early to release working capital","needs":["receivables","loan"],"categories":["micro","small","medium"]},
+ {"id":"solar","name":"Rooftop solar support","benefit":"Net-metering and solar capex support","needs":["energy"],"categories":["micro","small","medium"]}]
