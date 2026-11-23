@@ -55,14 +55,33 @@ def test_auth_and_isolation():
     pending_ids_2 = [p["id"] for p in state2["pending"]]
     assert pid1 not in pending_ids_2
 
-    # User 2 cannot approve User 1's loan
+    # User 2 cannot approve or decline User 1's loan (returns 404)
     bad_approve = client.post(f"/api/approve/{pid1}", headers={"Authorization": f"Bearer {token2}"})
     assert bad_approve.status_code == 404
+
+    bad_decline = client.post(f"/api/approve/{pid1}?ok=false", headers={"Authorization": f"Bearer {token2}"})
+    assert bad_decline.status_code == 404
+
+    # B's approval is still pending afterwards
+    state1 = client.get("/api/state", headers={"Authorization": f"Bearer {token1}"}).json()
+    pending_ids_1 = [p["id"] for p in state1["pending"]]
+    assert pid1 in pending_ids_1
+    approval_obj = next(p for p in state1["pending"] if p["id"] == pid1)
+    assert approval_obj["status"] == "pending"
+
+    # Approval ID unguessability check
+    assert len(pid1) >= 20
+    import re
+    assert re.match(r"^[A-Za-z0-9_-]+$", pid1)
 
     # User 1 approves their own loan
     good_approve = client.post(f"/api/approve/{pid1}", headers={"Authorization": f"Bearer {token1}"})
     assert good_approve.status_code == 200
     assert good_approve.json()["status"] == "submitted"
+
+    # Approvals must be single-use: second approve returns 404
+    second_approve = client.post(f"/api/approve/{pid1}", headers={"Authorization": f"Bearer {token1}"})
+    assert second_approve.status_code == 404
 
 def test_login_invalid_password():
     r = client.post("/api/auth/login", json={"username": "owner", "password": "wrongpassword"})
