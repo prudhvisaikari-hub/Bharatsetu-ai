@@ -33,7 +33,10 @@ from .middleware import StructuredLoggingAndRateLimitMiddleware
 app = FastAPI(
     title="BharatSetu AI",
     description="Agentic DPI Copilot for MSMEs in Indore & Pithampur",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs" if config.ENABLE_DOCS else None,
+    redoc_url="/redoc" if config.ENABLE_DOCS else None,
+    openapi_url="/openapi.json" if config.ENABLE_DOCS else None
 )
 
 # Add structured logging and rate limiting middleware

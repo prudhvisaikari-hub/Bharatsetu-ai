@@ -8,6 +8,7 @@ import uuid
 import datetime as dt
 from pathlib import Path
 from typing import Optional, Dict, Any, List
+from . import config
 from .db.database import engine, Base, SessionLocal
 from .db.models import MSME as MSMEModel, User as UserModel, AuditLog as AuditLogModel, Approval as ApprovalModel, KPI as KPIModel, ChatMessage as ChatMessageModel
 
@@ -19,6 +20,8 @@ SCHEMES = json.loads((DATA_DIR / "schemes.json").read_text())
 Base.metadata.create_all(bind=engine)
 
 def seed_default_data():
+    if not config.DEMO_MODE:
+        return
     db = SessionLocal()
     try:
         demo = db.query(MSMEModel).filter(MSMEModel.id == "demo").first()

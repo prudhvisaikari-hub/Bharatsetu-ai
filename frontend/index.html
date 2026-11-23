@@ -299,6 +299,9 @@
       </button>
     </div>
   </header>
+  <div id="demo-banner" style="display:none; background:#fef3c7; color:#92400e; border-bottom:1px solid #fcd34d; padding:7px 20px; font-size:13px; font-weight:600; text-align:center;">
+    ⚠️ DEMO MODE: simulated data & test environment. Any transactions or filings require real-world validation.
+  </div>
 
   <main>
     <!-- Left Column: Intelligent Orchestrator Chat -->
@@ -564,6 +567,9 @@
       try {
         var r = await fetch('/api/state', { headers: getAuthHeaders() });
         var s = await r.json();
+        if ($('demo-banner')) {
+          $('demo-banner').style.display = s.demo_mode ? 'block' : 'none';
+        }
         $('k1').textContent = '₹' + Math.round(s.kpi.rs_saved_per_year).toLocaleString('en-IN');
         $('k2').textContent = Math.round(s.kpi.kwh_cut_per_month).toLocaleString('en-IN');
         $('k3').textContent = s.kpi.hours_saved.toFixed(1);
