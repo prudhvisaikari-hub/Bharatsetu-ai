@@ -152,3 +152,24 @@ class ChatMessage(Base):
     content = Column(Text, nullable=False)
     trace_json = Column(Text, default="[]")
     created_at = Column(DateTime, default=lambda: dt.datetime.now(dt.timezone.utc))
+
+
+class WhatsAppLink(Base):
+    __tablename__ = "whatsapp_links"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    phone_hash = Column(String(128), unique=True, nullable=False, index=True)
+    msme_id = Column(String(36), ForeignKey("msmes.id"), nullable=False)
+    verified_at = Column(DateTime, nullable=True)
+    otp_code = Column(String(32), nullable=True)
+    otp_expires_at = Column(DateTime, nullable=True)
+
+    msme = relationship("MSME")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "phone_hash": self.phone_hash,
+            "msme_id": self.msme_id,
+            "verified_at": self.verified_at.isoformat() if self.verified_at else None
+        }

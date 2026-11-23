@@ -19,14 +19,17 @@ from .store import (
     get_msme_profile, get_msme_kpi, get_msme_audit, get_msme_pending
 )
 from .db.database import get_db
-from .db.models import User, MSME, ChatMessage
+from .db.models import User, MSME, ChatMessage, WhatsAppLink
 from .auth import (
     get_current_user_optional, get_current_user,
     hash_password, verify_password, needs_rehash, create_access_token
 )
 from .deps import resolve_msme_id, require_official_role
 from .channels.voice import voice_adapter
-from .channels.whatsapp import verify_meta_webhook, process_inbound_whatsapp
+from .channels.whatsapp import (
+    verify_meta_webhook, process_inbound_whatsapp,
+    verify_meta_signature, verify_twilio_signature
+)
 from .dashboard import get_owner_dashboard, get_cluster_dashboard
 from .middleware import StructuredLoggingAndRateLimitMiddleware
 
@@ -419,12 +422,15 @@ def verify_whatsapp(
     raise HTTPException(status_code=403, detail="Verification token mismatch")
 
 @app.post("/api/webhook/whatsapp")
-async def inbound_whatsapp(
-    request: Request
-):
+async def inbound_whatsapp(request: Request):
+    raw_body = await request.body()
+    meta_sig = request.headers.get("x-hub-signature-256")
+    twilio_sig = request.headers.get("x-twilio-signature")
+
     content_type = request.headers.get("content-type", "")
     payload = {}
     raw_media = None
+
     if "multipart/form-data" in content_type:
         form = await request.form()
         payload = dict(form)
@@ -433,14 +439,60 @@ async def inbound_whatsapp(
             raw_media = await upload.read()
     elif "application/json" in content_type:
         try:
-            payload = await request.json()
+            import json
+            payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
         except Exception:
             payload = {}
     elif "application/x-www-form-urlencoded" in content_type:
         form = await request.form()
         payload = dict(form)
 
+    # Signature verification
+    if meta_sig:
+        if not verify_meta_signature(raw_body, meta_sig):
+            raise HTTPException(status_code=403, detail="Invalid Meta webhook signature")
+    elif twilio_sig:
+        if not verify_twilio_signature(str(request.url), payload, twilio_sig):
+            raise HTTPException(status_code=403, detail="Invalid Twilio webhook signature")
+    else:
+        # Missing signature
+        if not config.DEMO_MODE:
+            if not config.WHATSAPP_APP_SECRET and not config.TWILIO_AUTH_TOKEN:
+                raise HTTPException(status_code=503, detail="WhatsApp webhook secrets not configured in production")
+            raise HTTPException(status_code=403, detail="Missing webhook signature header")
+        else:
+            if config.WHATSAPP_APP_SECRET or config.TWILIO_AUTH_TOKEN:
+                raise HTTPException(status_code=403, detail="Missing webhook signature header")
+
     return process_inbound_whatsapp(payload, raw_media=raw_media)
+
+@app.post("/api/whatsapp/link/request-otp")
+def request_whatsapp_link_otp(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    import secrets
+    import datetime as dt
+    otp_code = secrets.token_hex(3).upper()
+    expires_at = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=15)
+    
+    # Invalidate prior pending OTPs for this enterprise
+    db.query(WhatsAppLink).filter(WhatsAppLink.msme_id == user.msme_id, WhatsAppLink.verified_at.is_(None)).delete()
+    
+    link = WhatsAppLink(
+        phone_hash=f"pending_{secrets.token_hex(8)}",
+        msme_id=user.msme_id,
+        otp_code=otp_code,
+        otp_expires_at=expires_at
+    )
+    db.add(link)
+    db.commit()
+    return {
+        "status": "success",
+        "otp_code": otp_code,
+        "expires_in_minutes": 15,
+        "instructions": f"Send 'LINK {otp_code}' from your WhatsApp to connect your mobile number to your MSME."
+    }
 
 @app.post("/api/voice/transcribe")
 async def voice_transcribe(

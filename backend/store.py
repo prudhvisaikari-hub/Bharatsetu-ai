@@ -71,6 +71,16 @@ def seed_default_data():
             )
             db.add(kpi)
 
+            # Seed default verified WhatsApp link for demo phone
+            from .channels.whatsapp import hash_phone
+            from .db.models import WhatsAppLink
+            wa_link = WhatsAppLink(
+                phone_hash=hash_phone("+919876543210"),
+                msme_id="demo",
+                verified_at=dt.datetime.now(dt.timezone.utc)
+            )
+            db.add(wa_link)
+
             # Additional Pithampur Auto Cluster MSMEs (to achieve cohort >= 5 for privacy-compliant aggregation)
             pithampur_units = [
                 ("msme_pith_02", "Malwa Precision Gears", "UDYAM-MP-23-0020002", 3800000.0, 16200.0, 3.4),

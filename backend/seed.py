@@ -11,7 +11,8 @@ import datetime as dt
 from pathlib import Path
 from . import config
 from .db.database import engine, Base, SessionLocal
-from .db.models import MSME, User, AuditLog, Approval, KPI, ChatMessage
+from .db.models import MSME, User, AuditLog, Approval, KPI, ChatMessage, WhatsAppLink
+from .channels.whatsapp import hash_phone
 from .auth import hash_password
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -80,6 +81,14 @@ def seed_database(reset: bool = True, force: bool = False):
             seen_keys_json=json.dumps(["energy", "scheme", "qa", "comply", "market"])
         )
         db.add(kpi)
+
+        # 3b. Seed Verified WhatsApp link for demo phone +919876543210
+        demo_wa = WhatsAppLink(
+            phone_hash=hash_phone("+919876543210"),
+            msme_id="demo",
+            verified_at=dt.datetime.now(dt.timezone.utc)
+        )
+        db.add(demo_wa)
 
         # 4. Pending Approval: Rs 15,00,000 Working Capital Loan (Human-in-the-loop ready)
         pending_loan = Approval(
