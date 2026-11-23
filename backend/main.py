@@ -464,6 +464,9 @@ async def inbound_whatsapp(request: Request):
             if config.WHATSAPP_APP_SECRET or config.TWILIO_AUTH_TOKEN:
                 raise HTTPException(status_code=403, detail="Missing webhook signature header")
 
+    if raw_media and len(raw_media) > config.MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail=f"Media upload exceeds {config.MAX_UPLOAD_BYTES // (1024*1024)} MB limit")
+
     return process_inbound_whatsapp(payload, raw_media=raw_media)
 
 @app.post("/api/whatsapp/link/request-otp")
@@ -501,6 +504,8 @@ async def voice_transcribe(
     msme_id: str = Depends(resolve_msme_id)
 ):
     data = await file.read()
+    if len(data) > config.MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail=f"Audio file exceeds {config.MAX_UPLOAD_BYTES // (1024*1024)} MB limit")
     return voice_adapter.transcribe(data, source_lang=source_lang, msme_id=msme_id)
 
 @app.post("/api/voice/synthesize")

@@ -133,3 +133,25 @@ def test_password_hashing_and_legacy_upgrade():
         assert legacy_user.password_hash.startswith("$2b$") or legacy_user.password_hash.startswith("$2a$")
     finally:
         db.close()
+
+def test_auth_rate_limiting_and_proxy_rules(monkeypatch):
+    from backend import config
+    from backend.middleware import auth_limiter
+
+    test_ip = "192.168.1.99"
+    # Reset timestamps for test_ip
+    auth_limiter.requests[test_ip] = []
+
+    # 10 attempts allowed
+    for _ in range(10):
+        assert auth_limiter.is_allowed(test_ip) is True
+
+    # 11th attempt must be rejected
+    assert auth_limiter.is_allowed(test_ip) is False
+
+    # Stale eviction test
+    old_time = 1000.0
+    auth_limiter.requests["stale_ip_1"] = [old_time]
+    auth_limiter.last_cleanup = 0.0  # Force cleanup on next call
+    auth_limiter.is_allowed("active_ip")
+    assert "stale_ip_1" not in auth_limiter.requests

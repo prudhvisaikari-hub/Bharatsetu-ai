@@ -130,7 +130,7 @@ class KPI(Base):
     kwh_cut_per_month = Column(Float, default=0.0)
     hours_saved = Column(Float, default=0.0)
     seen_keys_json = Column(Text, default="[]")
-    updated_at = Column(DateTime, default=dt.datetime.utcnow, onupdate=dt.datetime.utcnow)
+    updated_at = Column(DateTime, default=lambda: dt.datetime.now(dt.timezone.utc), onupdate=lambda: dt.datetime.now(dt.timezone.utc))
 
     msme = relationship("MSME", back_populates="kpi")
 
