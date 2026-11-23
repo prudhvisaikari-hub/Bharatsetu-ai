@@ -51,3 +51,23 @@ def test_demo_mode_false_strict_security(monkeypatch):
 
     r_auth_chat = client.post("/api/chat", json={"text": "hello"}, headers=headers)
     assert r_auth_chat.status_code == 200
+
+def test_jwt_secret_validation_enforcement():
+    from backend.config import validate_jwt_secret
+    # In production (is_demo=False), short or missing secret must raise RuntimeError
+    with pytest.raises(RuntimeError) as exc_missing:
+        validate_jwt_secret("", is_demo=False)
+    assert "FATAL: JWT_SECRET" in str(exc_missing.value)
+
+    with pytest.raises(RuntimeError) as exc_short:
+        validate_jwt_secret("short-secret-key", is_demo=False)
+    assert "FATAL: JWT_SECRET" in str(exc_short.value)
+
+    # In DEMO_MODE, it generates an ephemeral secret
+    ephemeral = validate_jwt_secret("", is_demo=True)
+    assert len(ephemeral) >= 32
+
+    # A valid long secret passes in both modes
+    long_secret = "super-secret-production-key-at-least-32-chars-long"
+    assert validate_jwt_secret(long_secret, is_demo=False) == long_secret
+    assert validate_jwt_secret(long_secret, is_demo=True) == long_secret

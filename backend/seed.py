@@ -3,9 +3,13 @@ Resets and populates the database with Sharma Auto Components (Pithampur),
 demo credentials, sample audit logs, DPI consent records, and cluster MSMEs.
 """
 import json
+import os
+import sys
+import secrets
 import uuid
 import datetime as dt
 from pathlib import Path
+from . import config
 from .db.database import engine, Base, SessionLocal
 from .db.models import MSME, User, AuditLog, Approval, KPI, ChatMessage
 from .auth import hash_password
@@ -13,11 +17,22 @@ from .auth import hash_password
 DATA_DIR = Path(__file__).resolve().parent / "data"
 RAW_PROFILE = json.loads((DATA_DIR / "profile.json").read_text())
 
-def seed_database(reset: bool = True):
+def seed_database(reset: bool = True, force: bool = False):
+    if not config.DEMO_MODE and not force:
+        print("❌ Seeding aborted: DEMO_MODE is False. Run with --force or set DEMO_MODE=true to seed demo data.")
+        return False
+
     print("🌱 Initializing BharatSetu AI database...")
     if reset:
         Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+
+    owner_password = os.getenv("SEED_OWNER_PASSWORD")
+    if not owner_password:
+        owner_password = secrets.token_urlsafe(12)
+        print(f"🔑 Generated random owner password for seeded demo account: {owner_password}")
+    else:
+        print("🔑 Using SEED_OWNER_PASSWORD from environment.")
 
     db = SessionLocal()
     try:
@@ -45,12 +60,12 @@ def seed_database(reset: bool = True):
         )
         db.add(demo)
 
-        # 2. Demo User: owner / setu123
+        # 2. Demo User: owner
         owner = User(
             id="user_owner_demo",
             msme_id="demo",
             username="owner",
-            password_hash=hash_password("setu123"),
+            password_hash=hash_password(owner_password),
             role="owner",
             phone_number="+919876543210"
         )
@@ -147,4 +162,5 @@ def seed_database(reset: bool = True):
         db.close()
 
 if __name__ == "__main__":
-    seed_database()
+    force_flag = "--force" in sys.argv
+    seed_database(force=force_flag)

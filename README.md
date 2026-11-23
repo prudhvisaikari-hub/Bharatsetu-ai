@@ -157,17 +157,19 @@ pytest -v tests/test_browser_e2e.py
 | `ANTHROPIC_API_KEY` | *(empty)* | Optional. When present, enables Claude 3.5 Sonnet tool-use orchestrator loop. When absent, falls back to offline router. |
 | `BHARATSETU_MODEL` | `claude-3-5-sonnet-20241022` | Anthropic model identifier. |
 | `DATABASE_URL` | `sqlite:///./bharatsetu.db` | SQLAlchemy database URI (SQLite for local, PostgreSQL for cloud). |
-| `JWT_SECRET` | `bharatsetu-msme-...` | Cryptographic secret for signing user tokens. |
+| `DEMO_MODE` | `false` | When `true`, enables shared demo tenant and simulated offline testing. |
+| `JWT_SECRET` | *(unset)* | Minimum 32-character secret for signing user tokens (required in production). |
+| `SEED_OWNER_PASSWORD` | *(unset)* | Custom password for seeded owner; generated randomly if unset. |
 | `DPI_MODE` | `mock` | `mock` for sandboxed offline testing; `real` to route to production DPI gateways. |
 | `MAX_UPLOAD_BYTES` | `8388608` | Hard upload cap (8 MB) for part images and CSV files. |
-| `RATE_LIMIT_PER_MINUTE` | `120` | In-memory token-bucket rate limiter per IP address. |
-| `WHATSAPP_VERIFY_TOKEN` | `bharatsetu_verify_token` | Verification handshake secret for Meta WhatsApp Cloud API. |
+| `RATE_LIMIT_PER_MINUTE` | `60` | In-memory token-bucket rate limiter per IP address. |
+| `WHATSAPP_VERIFY_TOKEN` | *(unset)* | Verification handshake secret for Meta WhatsApp Cloud API. |
 | `BHASHINI_API_KEY` | *(empty)* | Optional MeitY Bhashini API key for live speech-to-text. |
 
 ---
 
 ## 8. Demo Credentials & Workflows
-- **Demo Owner Login:** Username `owner` | Password `setu123`
+- **Demo Owner Login:** In `DEMO_MODE=true`, seeded with username `owner` (password configured via `SEED_OWNER_PASSWORD` or printed to terminal during seed).
 - **Main Web Copilot:** `http://localhost:8000/`
 - **Owner Operations Dashboard:** `http://localhost:8000/dashboard`
 - **District Cluster Observatory:** `http://localhost:8000/cluster`
