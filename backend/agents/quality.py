@@ -15,6 +15,11 @@ logger = logging.getLogger("bharatsetu.quality")
 CELL = 20
 MODELS_DIR = Path(__file__).resolve().parent.parent.parent / "models"
 MODEL_PATH = MODELS_DIR / "surface_defect_yolov8n.pt"
+RESULTS_JSON = Path(__file__).resolve().parent.parent.parent / "docs" / "quality_results.json"
+
+def is_model_validated() -> bool:
+    """Returns True only if real evaluation results exist in docs/quality_results.json."""
+    return RESULTS_JSON.exists()
 
 _yolo_model = None
 try:
@@ -102,5 +107,7 @@ def inspect_image(data: bytes, msme_id: str = "demo") -> Dict[str, Any]:
         "defect_score": score,
         "boxes": boxes,
         "model_used": model_used,
+        "model_name": "surface_defect_yolov8n.pt",
+        "model_validated": is_model_validated(),
         "note": note
     }

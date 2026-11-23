@@ -39,10 +39,14 @@ def test_quality_agent_yolo_and_fallback():
 
     res_clean = client.post("/api/inspect", files={"file": ("clean.png", b_clean.getvalue(), "image/png")}).json()
     assert res_clean["verdict"] == "PASS"
+    assert "model_validated" in res_clean
+    assert res_clean["model_validated"] is False
+    assert res_clean["model_name"] == "surface_defect_yolov8n.pt"
 
     res_bad = client.post("/api/inspect", files={"file": ("bad.png", b_bad.getvalue(), "image/png")}).json()
     assert res_bad["verdict"] == "FAIL"
     assert len(res_bad["boxes"]) > 0
+    assert "model_validated" in res_bad
 
 def test_predictive_maintenance():
     # Send CSV with high vibration

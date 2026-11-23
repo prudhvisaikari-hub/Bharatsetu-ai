@@ -1,9 +1,9 @@
 # Quality Agent: YOLOv8 Surface Defect Detection & Model Benchmarks
 
 ## 1. Overview
-The Quality Agent replaces the prototype pixel-grid stand-in with a computer-vision object detector based on **Ultralytics YOLOv8n**, fine-tuned for industrial metal and steel surface defect detection.
+The Quality Agent provides computer-vision object detection for automotive components and steel blanks based on **Ultralytics YOLOv8n**, fine-tuned for surface defect inspection.
 
-The model inspects photographs of machined, turned, stamped, or cast automotive components commonly manufactured in the Pithampur Auto Cluster and Sanwer Road industrial belts.
+The detector is designed for photographs of machined, turned, stamped, or cast automotive components commonly manufactured in the Pithampur Auto Cluster and Sanwer Road industrial belts.
 
 ## 2. Dataset: NEU-DET Benchmark
 - **Dataset:** Northeastern University (NEU) Surface Defect Database.
@@ -14,31 +14,48 @@ The model inspects photographs of machined, turned, stamped, or cast automotive 
   4. `pitted_surface` (cavities / pinholes from corrosion or casting voids)
   5. `rolled-in_scale` (scale rolled into the surface during hot forming)
   6. `scratches` (mechanical scoring, handling tool gouges)
-- **Image Resolution:** $200 \times 200$ to $640 \times 640$ normalized.
-- **Model Architecture:** YOLOv8n (Nano), 3.2M parameters, single-stage anchor-free convolutional backbone with C2f feature aggregation.
+- **Model Architecture:** YOLOv8n (Nano), 3.2M parameters.
 
 ---
 
-## 3. Honest Precision, Recall & mAP Validation Metrics
+## 3. Validation Metrics & Status
 
-Evaluated on the held-out NEU-DET test split (360 images across 6 classes at IoU threshold 0.50):
+> **Validation Status: Not yet validated in this repository.**
 
-| Defect Class | Precision | Recall | mAP@0.5 | F1-Score | Typical Shopfloor Cause |
-|---|---|---|---|---|---|
-| **Scratches** | **88.5%** | **84.1%** | **87.2%** | **0.86** | Part handling, fixture burrs, conveyor friction |
-| **Patches** | 84.0% | 82.3% | 83.1% | 0.83 | Annealing oxidation, rolling mill coolant unevenness |
-| **Pitted Surface** | 82.4% | 76.5% | 79.8% | 0.79 | Casting micro-voids, acid pickling pitting |
-| **Inclusion** | 79.1% | 73.0% | 76.4% | 0.76 | Non-metallic slag in raw billet |
-| **Crazing** | 78.8% | 70.1% | 73.2% | 0.74 | High thermal gradient fatigue in heat treatment |
-| **Rolled-in Scale** | 74.2% | 68.9% | 71.0% | 0.71 | High-temperature scale pressed during rolling |
-| **Overall (All Classes)** | **81.2%** | **75.8%** | **78.4%** | **0.78** | **Weighted Average** |
+In accordance with our strict honesty rules, estimated or unverified performance figures are not published in this repository. Benchmark numbers will only be recorded once evaluated against a local held-out test split using the reproducible scripts below.
+
+### Reproducing Training & Evaluation:
+
+1. **Download NEU-DET Dataset:**
+   Download the Northeastern University (NEU-DET) dataset from Kaggle or the official repository and place it in `data/neu-det/` with the following structure:
+   ```
+   data/neu-det/
+     ├── data.yaml
+     ├── images/
+     │   ├── train/
+     │   └── val/
+     └── labels/
+         ├── train/
+         └── val/
+   ```
+
+2. **Run Training:**
+   ```bash
+   python training/train_yolo.py --data data/neu-det/data.yaml --epochs 50 --batch 16
+   ```
+
+3. **Run Evaluation:**
+   ```bash
+   python training/evaluate.py --weights models/surface_defect_yolov8n.pt --data data/neu-det/data.yaml
+   ```
+   Evaluation writes measured metrics directly to `docs/quality_results.json`. Once validated, the API and web UI automatically update `model_validated: true`.
 
 ---
 
 ## 4. Known Failure Modes & Limitations
-1. **Curved and Machined Cylindrical Parts:** The NEU dataset consists predominantly of planar flat steel strips. Highly reflective turned cylindrical pins (e.g. gudgeon pins) can produce bright specular highlights that may trigger false positive patch detections under harsh flash lighting.
-2. **Dust and Coolant Drops:** Water-soluble coolant droplet stains can occasionally be misclassified as pitting or inclusion. Shopfloor operators are instructed to blow dry parts with compressed air prior to WhatsApp or camera capture.
-3. **Low-Contrast Micro-Crazing:** Microscopic crazing cracks below 0.1 mm width require macro-lens magnification and can be missed under standard smartphone cameras (Recall: 70.1%).
+1. **Curved and Machined Cylindrical Parts:** Highly reflective turned cylindrical pins (e.g. gudgeon pins) can produce specular highlights that may trigger false positive detections under harsh lighting.
+2. **Dust and Coolant Drops:** Water-soluble coolant droplets can occasionally be misclassified as pitting or inclusion. Operators are advised to blow dry parts prior to capture.
+3. **Low-Contrast Micro-Crazing:** Microscopic crazing cracks below 0.1 mm width require macro-lens magnification and can be missed under standard smartphone cameras.
 
 ---
 

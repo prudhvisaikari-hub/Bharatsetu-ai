@@ -349,7 +349,7 @@
       <div class="card">
         <h2>
           <span id="txt-qa-title">YOLOv8 Part Inspection</span>
-          <span class="badge-sub" id="qa-model-badge">YOLOv8n / NEU-DET</span>
+          <span class="badge-sub" id="qa-model-badge" style="background:#fef3c7; color:#92400e;">unvalidated demo detector</span>
         </h2>
         <canvas id="cv" width="360" height="200" hidden></canvas>
         <p id="qr" style="font-size:13px; color:var(--mute); margin: 6px 0;"></p>
@@ -640,7 +640,13 @@
       (r.boxes || []).forEach(function(b) {
         g.strokeRect(b.x - 2, b.y - 2, b.w + 4, b.h + 4);
       });
-      $('qr').textContent = r.verdict + ' · Defect score ' + r.defect_score + '/100 (' + r.model_used + '). ' + r.note;
+      var statusTag = r.model_validated ? '' : ' (unvalidated demo detector)';
+      if (!r.model_validated && $('qa-model-badge')) {
+        $('qa-model-badge').textContent = 'unvalidated demo detector';
+        $('qa-model-badge').style.background = '#fef3c7';
+        $('qa-model-badge').style.color = '#92400e';
+      }
+      $('qr').textContent = r.verdict + ' · Defect score ' + r.defect_score + '/100 (' + r.model_used + statusTag + '). ' + r.note;
       refresh();
     };
 
