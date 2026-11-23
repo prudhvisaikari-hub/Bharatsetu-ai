@@ -201,8 +201,9 @@ def chat(session_id: str, text: str, msme_id: str = "demo") -> Dict[str, Any]:
         try:
             return _claude(session_id, text, msme_id)
         except Exception as e:
-            logger.warning(f"Claude API failed ({type(e).__name__}: {e}); falling back to offline router.")
-            log("Setu", f"Claude unavailable ({type(e).__name__}); used offline router", msme_id=msme_id)
+            exc_type = type(e).__name__
+            logger.warning(f"Claude API failed with exception: {exc_type}; falling back to offline router.")
+            log("Setu", f"Claude unavailable ({exc_type}); used offline router", msme_id=msme_id)
     return _offline(text, msme_id)
 
 def _claude(session_id: str, text: str, msme_id: str = "demo") -> Dict[str, Any]:

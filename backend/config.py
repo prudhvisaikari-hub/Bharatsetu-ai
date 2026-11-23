@@ -29,8 +29,8 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-# Default to valid Claude 3.5 Sonnet or 3.7 Sonnet model name
-BHARATSETU_MODEL = os.getenv("BHARATSETU_MODEL", "claude-3-5-sonnet-20241022")
+# Default model to claude-sonnet-5-5
+BHARATSETU_MODEL = os.getenv("BHARATSETU_MODEL", "claude-sonnet-5-5")
 
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'bharatsetu.db'}")
 

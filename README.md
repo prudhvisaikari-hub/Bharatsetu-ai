@@ -155,7 +155,7 @@ pytest -v tests/test_browser_e2e.py
 | Variable | Default Value | Description |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | *(empty)* | Optional. When present, enables Claude 3.5 Sonnet tool-use orchestrator loop. When absent, falls back to offline router. |
-| `BHARATSETU_MODEL` | `claude-3-5-sonnet-20241022` | Anthropic model identifier. |
+| `BHARATSETU_MODEL` | `claude-sonnet-5-5` | Anthropic model identifier. |
 | `DATABASE_URL` | `sqlite:///./bharatsetu.db` | SQLAlchemy database URI (SQLite for local, PostgreSQL for cloud). |
 | `DEMO_MODE` | `false` | When `true`, enables shared demo tenant and simulated offline testing. |
 | `JWT_SECRET` | *(unset)* | Minimum 32-character secret for signing user tokens (required in production). |
