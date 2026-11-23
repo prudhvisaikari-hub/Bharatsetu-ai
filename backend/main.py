@@ -24,6 +24,7 @@ from .auth import (
     get_current_user_optional, get_current_user,
     hash_password, verify_password, create_access_token
 )
+from .deps import resolve_msme_id, require_official_role
 from .channels.voice import voice_adapter
 from .channels.whatsapp import verify_meta_webhook, process_inbound_whatsapp
 from .dashboard import get_owner_dashboard, get_cluster_dashboard
@@ -165,9 +166,9 @@ def me(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
 def chat(
     body: ChatIn,
     current_user: Optional[User] = Depends(get_current_user_optional),
+    msme_id: str = Depends(resolve_msme_id),
     db: Session = Depends(get_db)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     out = orchestrator.chat(body.session_id, body.text, msme_id=msme_id)
     out["pending"] = get_msme_pending(msme_id)
 
@@ -199,15 +200,26 @@ def chat(
 def approve(
     pid: str,
     ok: bool = True,
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    msme_id: str = Depends(resolve_msme_id)
 ):
-    msme_id = current_user.msme_id if current_user else None
+    if current_user:
+        if current_user.role not in ("owner", "admin"):
+            raise HTTPException(status_code=403, detail="Only owner or admin may approve")
+        if current_user.msme_id != msme_id:
+            raise HTTPException(status_code=404, detail="No such pending approval")
+    else:
+        if not config.DEMO_MODE or msme_id != "demo":
+            raise HTTPException(status_code=401, detail="Authentication required")
+
     appr = get_approval(pid, msme_id=msme_id)
     if not appr or appr.get("status") != "pending":
         raise HTTPException(status_code=404, detail="No such pending approval")
 
     resolved_by = current_user.username if current_user else "owner"
-    action_msme_id = appr.get("msme_id", "demo")
+    action_msme_id = appr.get("msme_id", msme_id)
+    if action_msme_id != msme_id:
+        raise HTTPException(status_code=404, detail="No such pending approval")
 
     if not ok:
         update_approval_status(pid, "declined", resolved_by=resolved_by)
@@ -218,19 +230,21 @@ def approve(
     return finance.execute(appr, msme_id=action_msme_id)
 
 @app.post("/api/inspect")
-async def inspect(file: UploadFile = File(...)):
+async def inspect(
+    file: UploadFile = File(...),
+    msme_id: str = Depends(resolve_msme_id)
+):
     data = await file.read()
     if len(data) > config.MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail=f"Image too large (max {config.MAX_UPLOAD_BYTES // (1024*1024)} MB)")
     try:
-        return quality.inspect_image(data)
+        return quality.inspect_image(data, msme_id=msme_id)
     except Exception:
         raise HTTPException(status_code=400, detail="Could not read image")
 
 # --- Specialist Endpoints ---
 @app.get("/api/energy/carbon-report-pdf")
-def download_carbon_pdf(current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def download_carbon_pdf(msme_id: str = Depends(resolve_msme_id)):
     pdf_bytes = energy.generate_pdf(msme_id=msme_id)
     return Response(
         content=pdf_bytes,
@@ -241,49 +255,46 @@ def download_carbon_pdf(current_user: Optional[User] = Depends(get_current_user_
 @app.post("/api/energy/smart-meter")
 async def analyze_smart_meter(
     file: UploadFile = File(...),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
     data = await file.read()
     if len(data) > config.MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="File too large")
-    msme_id = current_user.msme_id if current_user else "demo"
     return energy.analyze_smart_meter_csv(data.decode("utf-8", errors="ignore"), msme_id=msme_id)
 
 @app.post("/api/maintenance/telemetry")
 async def analyze_telemetry(
     file: Optional[UploadFile] = File(None),
     machine_id: str = Query("CNC Lathe #2 / 100T Press"),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     content = ""
     if file:
         data = await file.read()
+        if len(data) > config.MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail="File too large")
         content = data.decode("utf-8", errors="ignore")
     return maintenance.analyze_telemetry(content, machine_id=machine_id, msme_id=msme_id)
 
 @app.post("/api/compliance/circular")
 def analyze_circular(
     body: CircularIn,
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     return compliance.summarize_circular(body.content, title=body.title or "Pasted Circular", msme_id=msme_id)
 
 @app.get("/api/market/buyers")
 def get_buyers(
     cluster: Optional[str] = None,
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     return market.find_buyers(cluster=cluster, msme_id=msme_id)
 
 @app.post("/api/market/listing")
 def draft_market_listing(
     body: MarketListingIn,
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     return market.draft_listing(
         product_name=body.product_name,
         price_inr=body.price_inr,
@@ -296,9 +307,8 @@ def draft_market_listing(
 @app.get("/api/wellness/info")
 def get_wellness_info(
     operation: Optional[str] = None,
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     return {
         "reminders": wellness.get_reminders(operation, msme_id=msme_id),
         "facilities": wellness.find_healthcare(msme_id=msme_id),
@@ -308,33 +318,28 @@ def get_wellness_info(
 @app.get("/api/supply-chain/forecast")
 def get_supply_chain_forecast(
     growth: float = Query(15.0),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     return supply_chain.forecast_raw_materials(orders_growth_pct=growth, msme_id=msme_id)
 
 # --- DPI Adapter Endpoints (Consent Required) ---
 @app.post("/api/dpi/aa/consent")
-def dpi_aa_consent(body: AAConsentIn, current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_aa_consent(body: AAConsentIn, msme_id: str = Depends(resolve_msme_id)):
     aa = get_adapter("account_aggregator")
     return aa.request_consent(customer_vpa=body.customer_vpa, purpose=body.purpose, msme_id=msme_id)
 
 @app.get("/api/dpi/aa/financials")
-def dpi_aa_financials(consent_handle: str = "HANDLE_DEMO", current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_aa_financials(consent_handle: str = "HANDLE_DEMO", msme_id: str = Depends(resolve_msme_id)):
     aa = get_adapter("account_aggregator")
     return aa.fetch_financial_data(consent_handle=consent_handle, msme_id=msme_id)
 
 @app.get("/api/dpi/gst/status")
-def dpi_gst_status(gstin: Optional[str] = None, current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_gst_status(gstin: Optional[str] = None, msme_id: str = Depends(resolve_msme_id)):
     gst = get_adapter("gst")
     return gst.get_filing_status(gstin=gstin, msme_id=msme_id)
 
 @app.post("/api/dpi/gst/eway-bill")
-def dpi_gst_eway_bill(body: EwayBillIn, current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_gst_eway_bill(body: EwayBillIn, msme_id: str = Depends(resolve_msme_id)):
     gst = get_adapter("gst")
     return gst.generate_eway_bill(
         invoice_number=body.invoice_number,
@@ -346,20 +351,17 @@ def dpi_gst_eway_bill(body: EwayBillIn, current_user: Optional[User] = Depends(g
     )
 
 @app.get("/api/dpi/digilocker/document")
-def dpi_digilocker(doc_type: str = "UDYAM", current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_digilocker(doc_type: str = "UDYAM", msme_id: str = Depends(resolve_msme_id)):
     dl = get_adapter("digilocker")
     return dl.pull_document(doc_type=doc_type, msme_id=msme_id)
 
 @app.get("/api/dpi/udyam/verify")
-def dpi_udyam(udyam_number: Optional[str] = None, current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_udyam(udyam_number: Optional[str] = None, msme_id: str = Depends(resolve_msme_id)):
     ud = get_adapter("udyam")
     return ud.verify_registration(udyam_number=udyam_number, msme_id=msme_id)
 
 @app.post("/api/dpi/einvoicing/irn")
-def dpi_einvoicing(body: EInvoicingIn, current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_einvoicing(body: EInvoicingIn, msme_id: str = Depends(resolve_msme_id)):
     ei = get_adapter("einvoicing")
     return ei.generate_irn(
         invoice_number=body.invoice_number,
@@ -370,8 +372,7 @@ def dpi_einvoicing(body: EInvoicingIn, current_user: Optional[User] = Depends(ge
     )
 
 @app.post("/api/dpi/upi/payment-link")
-def dpi_upi(body: UPIPaymentIn, current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_upi(body: UPIPaymentIn, msme_id: str = Depends(resolve_msme_id)):
     up = get_adapter("upi")
     return up.create_invoice_payment_link(
         invoice_id=body.invoice_id,
@@ -381,14 +382,12 @@ def dpi_upi(body: UPIPaymentIn, current_user: Optional[User] = Depends(get_curre
     )
 
 @app.get("/api/dpi/ulip/track")
-def dpi_ulip(vehicle_number: str = "MP-09-GH-8219", current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_ulip(vehicle_number: str = "MP-09-GH-8219", msme_id: str = Depends(resolve_msme_id)):
     ul = get_adapter("ulip")
     return ul.track_consignment(vehicle_number=vehicle_number, msme_id=msme_id)
 
 @app.post("/api/dpi/treds/discount")
-def dpi_treds(body: TReDSIn, current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def dpi_treds(body: TReDSIn, msme_id: str = Depends(resolve_msme_id)):
     tr = get_adapter("treds")
     return tr.upload_invoice_for_discounting(
         invoice_number=body.invoice_number,
@@ -439,33 +438,31 @@ async def inbound_whatsapp(
 async def voice_transcribe(
     file: UploadFile = File(...),
     source_lang: str = Query("hi"),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
     data = await file.read()
-    msme_id = current_user.msme_id if current_user else "demo"
     return voice_adapter.transcribe(data, source_lang=source_lang, msme_id=msme_id)
 
 @app.post("/api/voice/synthesize")
 def voice_synthesize(
     text: str = Query(...),
     target_lang: str = Query("hi"),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    msme_id: str = Depends(resolve_msme_id)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     return voice_adapter.synthesize(text, target_lang=target_lang, msme_id=msme_id)
 
 # --- Dashboards: Owner & District Official Cluster View ---
 @app.get("/api/dashboard/owner")
 def dashboard_owner(
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    msme_id: str = Depends(resolve_msme_id),
     db: Session = Depends(get_db)
 ):
-    msme_id = current_user.msme_id if current_user else "demo"
     return get_owner_dashboard(msme_id=msme_id, db=db)
 
 @app.get("/api/dashboard/cluster")
 def dashboard_cluster(
     cluster: str = Query("Pithampur Auto Cluster"),
+    official: Optional[User] = Depends(require_official_role),
     db: Session = Depends(get_db)
 ):
     return get_cluster_dashboard(cluster_name=cluster, db=db)
@@ -479,9 +476,9 @@ def view_cluster_dashboard():
     return FileResponse(FRONT / "cluster.html")
 
 @app.get("/api/state")
-def state(current_user: Optional[User] = Depends(get_current_user_optional)):
-    msme_id = current_user.msme_id if current_user else "demo"
+def state(msme_id: str = Depends(resolve_msme_id)):
     return {
+        "demo_mode": config.DEMO_MODE,
         "profile": get_msme_profile(msme_id),
         "kpi": get_msme_kpi(msme_id),
         "audit": get_msme_audit(msme_id, limit=30),

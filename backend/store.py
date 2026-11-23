@@ -210,8 +210,10 @@ def gain(key: str, rs: float = 0.0, kwh: float = 0.0, hrs: float = 0.0, msme_id:
     finally:
         db.close()
 
+import secrets
+
 def new_approval(kind: str, payload: dict, msme_id: str = "demo") -> str:
-    pid = uuid.uuid4().hex[:8]
+    pid = secrets.token_urlsafe(16)
     item = {"id": pid, "kind": kind, "payload": payload, "status": "pending"}
     PENDING[pid] = item
 

@@ -1,5 +1,9 @@
 import pytest
 import os
+from backend import config
+os.environ["DEMO_MODE"] = "true"
+config.DEMO_MODE = True
+
 from backend.db.database import engine, Base
 from backend.store import seed_default_data
 
