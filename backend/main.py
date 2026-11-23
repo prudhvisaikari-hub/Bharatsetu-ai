@@ -22,7 +22,7 @@ from .db.database import get_db
 from .db.models import User, MSME, ChatMessage
 from .auth import (
     get_current_user_optional, get_current_user,
-    hash_password, verify_password, create_access_token
+    hash_password, verify_password, needs_rehash, create_access_token
 )
 from .deps import resolve_msme_id, require_official_role
 from .channels.voice import voice_adapter
@@ -55,7 +55,7 @@ class LoginIn(BaseModel):
 
 class RegisterIn(BaseModel):
     username: str
-    password: str
+    password: str = Field(..., min_length=10, description="Minimum 10 characters")
     msme_name: str
     city: str = "Pithampur, Indore"
     udyam: str
@@ -144,6 +144,11 @@ def login(body: LoginIn, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == body.username).first()
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid username or password")
+    
+    # Automatically re-hash legacy SHA-256 passwords to bcrypt upon successful authentication
+    if needs_rehash(user.password_hash):
+        user.password_hash = hash_password(body.password)
+        db.commit()
     
     token = create_access_token({"sub": user.username, "msme_id": user.msme_id, "role": user.role})
     return {

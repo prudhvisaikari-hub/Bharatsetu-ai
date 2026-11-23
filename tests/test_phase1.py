@@ -86,3 +86,50 @@ def test_upload_cap():
     huge_data = b"0" * (8 * 1024 * 1024 + 1024)
     r = client.post("/api/inspect", files={"file": ("huge.png", huge_data, "image/png")})
     assert r.status_code == 413
+
+def test_password_hashing_and_legacy_upgrade():
+    # 1. Enforce min length 10
+    r_short = client.post("/api/auth/register", json={
+        "username": "short_user",
+        "password": "short",
+        "msme_name": "Short Co",
+        "udyam": "UDYAM-MP-23-0000101"
+    })
+    assert r_short.status_code == 422 or r_short.status_code == 400
+
+    # 2. Register valid user -> uses bcrypt ($2b$)
+    r_reg = client.post("/api/auth/register", json={
+        "username": "bcrypt_user",
+        "password": "StrongPassword123!",
+        "msme_name": "Bcrypt Engineering",
+        "udyam": "UDYAM-MP-23-0000102"
+    })
+    assert r_reg.status_code == 200
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.username == "bcrypt_user").first()
+        assert user.password_hash.startswith("$2b$") or user.password_hash.startswith("$2a$")
+
+        # 3. Insert legacy SHA-256 user and verify it logs in and upgrades to bcrypt
+        import hashlib, os
+        salt = os.urandom(16).hex()
+        sha_hash = hashlib.sha256((salt + "LegacyPass123!").encode()).hexdigest()
+        legacy_user = User(
+            id="user_legacy_01",
+            msme_id="demo",
+            username="legacy_user",
+            password_hash=f"{salt}:{sha_hash}",
+            role="owner"
+        )
+        db.add(legacy_user)
+        db.commit()
+
+        # Login with legacy user
+        r_log = client.post("/api/auth/login", json={"username": "legacy_user", "password": "LegacyPass123!"})
+        assert r_log.status_code == 200
+
+        # Verify password_hash was automatically upgraded to bcrypt
+        db.refresh(legacy_user)
+        assert legacy_user.password_hash.startswith("$2b$") or legacy_user.password_hash.startswith("$2a$")
+    finally:
+        db.close()

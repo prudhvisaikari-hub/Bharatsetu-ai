@@ -49,15 +49,13 @@ def seed_default_data():
             )
             db.add(demo)
 
-            # Seed default demo owner user (password: "setu123")
-            import hashlib, os
-            salt = os.urandom(16).hex()
-            h = hashlib.sha256((salt + "setu123").encode()).hexdigest()
+            # Seed default demo owner user
+            from .auth import hash_password
             user = UserModel(
                 id="user_demo",
                 msme_id="demo",
                 username="owner",
-                password_hash=f"{salt}:{h}",
+                password_hash=hash_password("setu123"),
                 role="owner",
                 phone_number="+919876543210"
             )

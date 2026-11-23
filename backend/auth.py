@@ -1,6 +1,7 @@
 import datetime as dt
 import hashlib
 import os
+import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -12,17 +13,25 @@ from .db.models import User, MSME
 security = HTTPBearer(auto_error=False)
 
 def hash_password(password: str) -> str:
-    salt = os.urandom(16).hex()
-    hashed = hashlib.sha256((salt + password).encode()).hexdigest()
-    return f"{salt}:{hashed}"
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        salt, hashed = hashed_password.split(":")
-        check = hashlib.sha256((salt + plain_password).encode()).hexdigest()
-        return check == hashed
+        if hashed_password.startswith("$2b$") or hashed_password.startswith("$2a$"):
+            return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+        if ":" in hashed_password:
+            # Legacy salt:sha256 format
+            salt, hashed = hashed_password.split(":", 1)
+            check = hashlib.sha256((salt + plain_password).encode()).hexdigest()
+            return check == hashed
+        return False
     except Exception:
         return False
+
+def needs_rehash(hashed_password: str) -> bool:
+    """Returns True if the stored hash is in the legacy salt:sha256 format."""
+    return not (hashed_password.startswith("$2b$") or hashed_password.startswith("$2a$"))
 
 def create_access_token(data: dict, expires_delta: dt.timedelta | None = None) -> str:
     to_encode = data.copy()
