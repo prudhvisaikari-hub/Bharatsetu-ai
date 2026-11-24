@@ -11,6 +11,11 @@ load_dotenv(BASE_DIR / ".env")
 
 DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() in ("true", "1", "yes")
 
+KNOWN_FORBIDDEN_JWT_SECRETS = {
+    "bharatsetu-msme-pithampur-secure-jwt-key-2026",
+    "bharatsetu-dev-secret-key-change-in-production-2026",
+}
+
 def validate_jwt_secret(raw_secret: str, is_demo: bool) -> str:
     cleaned = (raw_secret or "").strip()
     if not cleaned or len(cleaned) < 32:
@@ -21,6 +26,11 @@ def validate_jwt_secret(raw_secret: str, is_demo: bool) -> str:
         raise RuntimeError(
             "FATAL: JWT_SECRET environment variable is missing or shorter than 32 characters when DEMO_MODE=false. "
             "Configure a secure random secret using: python -c \"import secrets;print(secrets.token_urlsafe(48))\""
+        )
+    if not is_demo and cleaned in KNOWN_FORBIDDEN_JWT_SECRETS:
+        raise RuntimeError(
+            "FATAL: JWT_SECRET matches a known public default string from repository history. "
+            "Generate a unique random secret using: python -c \"import secrets;print(secrets.token_urlsafe(48))\""
         )
     return cleaned
 

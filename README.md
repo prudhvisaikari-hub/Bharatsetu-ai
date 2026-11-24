@@ -129,11 +129,18 @@ Open **http://127.0.0.1:8000** in your browser.
 
 ## 5. Docker Deployment
 
+Create a private local `.env` file (which is git-ignored) with secure random secrets:
+```bash
+# Generate secure random secrets:
+python -c "import secrets; print('JWT_SECRET=' + secrets.token_urlsafe(48))" >> .env
+python -c "import secrets; print('PHONE_HASH_KEY=' + secrets.token_urlsafe(48))" >> .env
+```
+
 Start the application with one command:
 ```bash
 docker compose up --build
 ```
-The application will bind to `http://localhost:8000` with automated healthchecks.
+The application will bind to `http://localhost:8000` with automated healthchecks. `docker compose` will fail fast if `JWT_SECRET` is not set. In non-demo mode, `JWT_SECRET` cannot match any known public default strings.
 
 ---
 

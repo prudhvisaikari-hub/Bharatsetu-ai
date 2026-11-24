@@ -122,6 +122,16 @@ def test_jwt_secret_validation_enforcement():
         validate_jwt_secret("short-secret-key", is_demo=False)
     assert "FATAL: JWT_SECRET" in str(exc_short.value)
 
+    # Known repository default secrets must be rejected in non-demo mode
+    for forbidden in [
+        "bharatsetu-msme-pithampur-secure-jwt-key-2026",
+        "bharatsetu-dev-secret-key-change-in-production-2026",
+    ]:
+        with pytest.raises(RuntimeError) as exc_forbidden:
+            validate_jwt_secret(forbidden, is_demo=False)
+        assert "FATAL: JWT_SECRET" in str(exc_forbidden.value)
+        assert "known public default" in str(exc_forbidden.value)
+
     # In DEMO_MODE, it generates an ephemeral secret
     ephemeral = validate_jwt_secret("", is_demo=True)
     assert len(ephemeral) >= 32
