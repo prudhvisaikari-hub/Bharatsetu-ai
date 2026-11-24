@@ -22,20 +22,9 @@ from ..channels.voice import voice_adapter
 from ..store import log, get_approval, update_approval_status
 from ..db.database import SessionLocal
 from ..db.models import WhatsAppLink
+from ..auth import hash_phone, mask_phone
 
 logger = logging.getLogger("bharatsetu.whatsapp")
-
-def hash_phone(phone: str) -> str:
-    """Returns a salted SHA-256 hash of the normalized phone number."""
-    cleaned = "".join(ch for ch in phone if ch.isdigit() or ch == "+")
-    return hashlib.sha256((config.PHONE_HASH_SALT + cleaned).encode("utf-8")).hexdigest()
-
-def mask_phone(phone: str) -> str:
-    """Masks phone number showing only the last 2 digits for audit/privacy protection."""
-    cleaned = phone.strip()
-    if len(cleaned) <= 2:
-        return "**"
-    return "*" * (len(cleaned) - 2) + cleaned[-2:]
 
 def verify_meta_webhook(mode: str, token: str, challenge: str) -> Optional[str]:
     """Verifies Meta WhatsApp Cloud API webhook registration handshake."""

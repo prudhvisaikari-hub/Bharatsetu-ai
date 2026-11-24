@@ -12,7 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEMO_MODE: "true"
+      JWT_SECRET: "ci-secret-at-least-32-characters-long-key-12345678"
       SEED_OWNER_PASSWORD: "setu123"
+      PYTHONPATH: "."
 
     steps:
       - name: Checkout code

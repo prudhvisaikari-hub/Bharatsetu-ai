@@ -12,8 +12,7 @@ from pathlib import Path
 from . import config
 from .db.database import engine, Base, SessionLocal
 from .db.models import MSME, User, AuditLog, Approval, KPI, ChatMessage, WhatsAppLink
-from .channels.whatsapp import hash_phone
-from .auth import hash_password
+from .auth import hash_password, hash_phone
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 RAW_PROFILE = json.loads((DATA_DIR / "profile.json").read_text())
@@ -172,4 +171,11 @@ def seed_database(reset: bool = True, force: bool = False):
 
 if __name__ == "__main__":
     force_flag = "--force" in sys.argv
-    seed_database(force=force_flag)
+    try:
+        res = seed_database(force=force_flag)
+        if res is False and not force_flag:
+            sys.exit(0)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

@@ -72,7 +72,7 @@ def seed_default_data():
             db.add(kpi)
 
             # Seed default verified WhatsApp link for demo phone
-            from .channels.whatsapp import hash_phone
+            from .auth import hash_phone
             from .db.models import WhatsAppLink
             wa_link = WhatsAppLink(
                 phone_hash=hash_phone("+919876543210"),

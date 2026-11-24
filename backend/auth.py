@@ -72,3 +72,16 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
+
+def hash_phone(phone: str) -> str:
+    """Returns a salted SHA-256 hash of the normalized phone number."""
+    cleaned = "".join(ch for ch in phone if ch.isdigit() or ch == "+")
+    from . import config
+    salt = config.PHONE_HASH_SALT
+    return hashlib.sha256(f"{salt}:{cleaned}".encode()).hexdigest()
+
+def mask_phone(phone: str) -> str:
+    """Masks phone number showing only country code and last 2 digits, e.g. +91******10."""
+    if len(phone) < 4:
+        return "****"
+    return f"{phone[:3]}******{phone[-2:]}"
