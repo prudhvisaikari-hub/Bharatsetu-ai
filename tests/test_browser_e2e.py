@@ -34,7 +34,13 @@ def run_app_server():
     thread.start()
 
     # Wait for server to bind
-    time.sleep(1.5)
+    import urllib.request
+    for _ in range(50):
+        try:
+            with urllib.request.urlopen(f"{BASE_URL}/", timeout=1):
+                break
+        except Exception:
+            time.sleep(0.2)
     yield
     server.should_exit = True
 
