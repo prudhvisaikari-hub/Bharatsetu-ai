@@ -26,7 +26,7 @@ def run_app_server():
     """Starts the BharatSetu AI FastAPI application on a dedicated test port."""
     from backend.main import app
     from backend.seed import seed_database
-    seed_database(reset=True)
+    seed_database(reset=True, force=True)
 
     config = uvicorn.Config(app=app, host="127.0.0.1", port=TEST_PORT, log_level="warning")
     server = uvicorn.Server(config)

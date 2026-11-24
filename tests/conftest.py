@@ -1,7 +1,8 @@
-import pytest
 import os
-from backend import config
 os.environ["DEMO_MODE"] = "true"
+
+import pytest
+from backend import config
 config.DEMO_MODE = True
 
 from backend.db.database import engine, Base

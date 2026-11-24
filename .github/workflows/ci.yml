@@ -10,6 +10,9 @@ jobs:
   test:
     name: Pytest & Quality Checks
     runs-on: ubuntu-latest
+    env:
+      DEMO_MODE: "true"
+      SEED_OWNER_PASSWORD: "setu123"
 
     steps:
       - name: Checkout code
@@ -38,7 +41,7 @@ jobs:
 
       - name: Seed Demo Database
         run: |
-          python -m backend.seed
+          python -m backend.seed --force
 
       - name: Run Pytest Suite
         run: |
