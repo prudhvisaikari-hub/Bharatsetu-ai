@@ -140,3 +140,13 @@ def test_jwt_secret_validation_enforcement():
     long_secret = "super-secret-production-key-at-least-32-chars-long"
     assert validate_jwt_secret(long_secret, is_demo=False) == long_secret
     assert validate_jwt_secret(long_secret, is_demo=True) == long_secret
+
+def test_health_endpoint_public_minimal(monkeypatch):
+    monkeypatch.setattr(config, "DEMO_MODE", False)
+    client = TestClient(app)
+    r = client.get("/health")
+    assert r.status_code == 200
+    assert r.json() == {"status": "ok"}
+    # Must not leak tenant or state information
+    assert "demo_mode" not in r.json()
+    assert "msme" not in r.json()

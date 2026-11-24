@@ -45,6 +45,10 @@ app = FastAPI(
 # Add structured logging and rate limiting middleware
 app.add_middleware(StructuredLoggingAndRateLimitMiddleware)
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 FRONT = Path(__file__).resolve().parent.parent / "frontend"
 
 # Schemas
