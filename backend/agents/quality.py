@@ -23,6 +23,10 @@ def is_model_validated() -> bool:
 
 _yolo_model = None
 try:
+    yolo_dir = Path(__file__).resolve().parent.parent.parent / ".yolo"
+    os.environ.setdefault("YOLO_CONFIG_DIR", str(yolo_dir))
+    os.environ.setdefault("YOLO_VERBOSE", "False")
+    os.environ.setdefault("ULTRALYTICS_AUTOINSTALL", "False")
     from ultralytics import YOLO
     if MODEL_PATH.exists():
         _yolo_model = YOLO(str(MODEL_PATH))

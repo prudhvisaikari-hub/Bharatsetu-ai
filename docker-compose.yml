@@ -10,13 +10,22 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:////app/bharatsetu.db
+      - DATABASE_URL=sqlite:////app/data/bharatsetu.db
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - BHARATSETU_MODEL=${BHARATSETU_MODEL:-claude-3-5-sonnet-20241022}
+      - BHARATSETU_MODEL=${BHARATSETU_MODEL:-claude-sonnet-5-5}
       - DPI_MODE=${DPI_MODE:-mock}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
-      - MAX_UPLOAD_BYTES=8388608
-      - RATE_LIMIT_PER_MINUTE=120
+      - MAX_UPLOAD_BYTES=${MAX_UPLOAD_BYTES:-8388608}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-60}
+      - DEMO_MODE=${DEMO_MODE:-false}
+      - ENABLE_DOCS=${ENABLE_DOCS:-false}
+      - TRUSTED_PROXY=${TRUSTED_PROXY:-false}
+      - WHATSAPP_APP_SECRET=${WHATSAPP_APP_SECRET:-}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - SEED_OWNER_PASSWORD=${SEED_OWNER_PASSWORD:-}
+      - PHONE_HASH_SALT=${PHONE_HASH_SALT:-}
+      - PHONE_HASH_KEY=${PHONE_HASH_KEY:-}
     volumes:
       - bharatsetu-data:/app/data
     healthcheck:

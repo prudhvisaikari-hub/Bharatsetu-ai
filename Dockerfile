@@ -23,12 +23,21 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application directories
-COPY backend/ ./backend/
-COPY frontend/ ./frontend/
-COPY docs/ ./docs/
-COPY models/ ./models/
-COPY .env.example .env
+# Create non-root user and set up application directory permissions
+RUN groupadd -g 1001 setu && \
+    useradd -u 1001 -g setu -m -s /bin/bash setu && \
+    mkdir -p /app/data && \
+    chown -R setu:setu /app
+
+# Copy application directories and set ownership
+COPY --chown=setu:setu backend/ ./backend/
+COPY --chown=setu:setu frontend/ ./frontend/
+COPY --chown=setu:setu docs/ ./docs/
+COPY --chown=setu:setu models/ ./models/
+COPY --chown=setu:setu .env.example .env
+
+# Switch to non-root user
+USER setu
 
 # Expose FastAPI service port
 EXPOSE 8000
