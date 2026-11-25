@@ -22,15 +22,31 @@ def get_owner_dashboard(msme_id: str = "demo", db: Optional[Session] = None) -> 
     scope2_tco2e_month = round(monthly_kwh * grid_factor / 1000.0, 2)
     co2_saved_tco2e_month = round(kpi.get("kwh_cut_per_month", 0.0) * grid_factor / 1000.0, 2)
 
-    # 6-month defect rate trend showing quality improvements via YOLO
-    defect_history = [
-        {"month": "Month -5", "defect_rate_pct": 4.8, "scrap_cost_rs": 135000},
-        {"month": "Month -4", "defect_rate_pct": 4.5, "scrap_cost_rs": 125000},
-        {"month": "Month -3", "defect_rate_pct": 4.3, "scrap_cost_rs": 118000},
-        {"month": "Month -2", "defect_rate_pct": 4.1, "scrap_cost_rs": 110000},
-        {"month": "Month -1", "defect_rate_pct": 3.8, "scrap_cost_rs": 98000},
-        {"month": "Current", "defect_rate_pct": round(profile.get("rejection_rate_pct", 3.6), 1), "scrap_cost_rs": 88000}
-    ]
+    # Defect rate trend: in DEMO_MODE, provide simulated 6-month historical trend;
+    # when DEMO_MODE=false, provide empty list so UI displays "No data yet".
+    current_rejection_pct = round(float(profile.get("rejection_rate_pct", 3.6)), 1)
+    current_scrap_cost = float(profile.get("scrap_cost_rs", 88000.0))
+
+    if config.DEMO_MODE:
+        defect_history = [
+            {"month": "Month -5", "defect_rate_pct": 4.8, "scrap_cost_rs": 135000},
+            {"month": "Month -4", "defect_rate_pct": 4.5, "scrap_cost_rs": 125000},
+            {"month": "Month -3", "defect_rate_pct": 4.3, "scrap_cost_rs": 118000},
+            {"month": "Month -2", "defect_rate_pct": 4.1, "scrap_cost_rs": 110000},
+            {"month": "Month -1", "defect_rate_pct": 3.8, "scrap_cost_rs": 98000},
+            {"month": "Current", "defect_rate_pct": current_rejection_pct, "scrap_cost_rs": round(current_scrap_cost)}
+        ]
+        # Compute first to last defect rate and saving dynamically from the series
+        first_entry = defect_history[0]
+        last_entry = defect_history[-1]
+        saving_rs = max(0, first_entry["scrap_cost_rs"] - last_entry["scrap_cost_rs"])
+        defect_caption = (
+            f"simulated trend (demo data): Rejection rate reduced from {first_entry['defect_rate_pct']}% "
+            f"to {last_entry['defect_rate_pct']}% over 6 months, saving approx ₹{saving_rs:,.0f}/month in scrap metal cost."
+        )
+    else:
+        defect_history = []
+        defect_caption = "No data yet. Defect trend will populate as shopfloor inspection images are processed."
 
     # Electricity demand and solar profile
     load_kw = profile.get("load_kw", [30, 45, 60, 80, 92, 56])
@@ -61,6 +77,7 @@ def get_owner_dashboard(msme_id: str = "demo", db: Optional[Session] = None) -> 
             "pending_items": pending
         },
         "defect_history": defect_history,
+        "defect_caption": defect_caption,
         "load_profile_24h": [{"hour": f"{h:02d}:00", "kw": kw} for h, kw in enumerate(load_kw)],
         "demo_mode": config.DEMO_MODE,
         "simulated": True

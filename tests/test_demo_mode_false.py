@@ -250,3 +250,79 @@ def test_lazy_phone_hash_migration(monkeypatch):
     assert updated_link.phone_hash == mod_hash
     db2.close()
 
+
+def test_per_tenant_kpi_isolation_and_deduplication(monkeypatch):
+    """Verifies:
+    1. gain() requires msme_id outside DEMO_MODE.
+    2. Two businesses each get credit once for the same action.
+    3. Business A's KPIs are never visible to B.
+    4. Repeating an action does not double-count.
+    5. KPIs persist across database reload / app restart.
+    """
+    monkeypatch.setattr(config, "DEMO_MODE", False)
+    from backend.store import gain, get_msme_kpi
+    from backend.db.database import SessionLocal
+    from backend.db.models import KPI as KPIModel, MSME
+
+    msme_a = "msme_tenant_test_a"
+    msme_b = "msme_tenant_test_b"
+
+    db = SessionLocal()
+    db.query(KPIModel).filter(KPIModel.msme_id.in_([msme_a, msme_b])).delete()
+    # Ensure MSMEs exist in DB
+    for mid in [msme_a, msme_b]:
+        if not db.query(MSME).filter(MSME.id == mid).first():
+            db.add(MSME(id=mid, name=f"Unit {mid}", udyam=f"UDYAM-{mid}", cluster="Pithampur Auto Cluster"))
+    db.commit()
+    db.close()
+
+    # 1. gain() must fail if msme_id is missing when DEMO_MODE=False
+    with pytest.raises(ValueError, match="msme_id is required"):
+        gain("test_benefit", rs=10000, hrs=2.0)
+
+    # 2. Business A gains credit for 'solar_plan'
+    gain("solar_plan", rs=50000, kwh=1000, hrs=5.0, msme_id=msme_a)
+
+    kpi_a = get_msme_kpi(msme_a)
+    kpi_b = get_msme_kpi(msme_b)
+
+    assert kpi_a["rs_saved_per_year"] == 50000
+    assert kpi_a["kwh_cut_per_month"] == 1000
+    assert kpi_a["hours_saved"] == 5.0
+    # 3. Business A's KPIs are never visible to B
+    assert kpi_b["rs_saved_per_year"] == 0.0
+    assert kpi_b["kwh_cut_per_month"] == 0.0
+    assert kpi_b["hours_saved"] == 0.0
+
+    # 4. Repeating the same action for A does not double-count
+    gain("solar_plan", rs=50000, kwh=1000, hrs=5.0, msme_id=msme_a)
+    kpi_a_after = get_msme_kpi(msme_a)
+    assert kpi_a_after["rs_saved_per_year"] == 50000
+    assert kpi_a_after["kwh_cut_per_month"] == 1000
+
+    # 2b. Business B executes the same action ('solar_plan') and gets its own credit once
+    gain("solar_plan", rs=50000, kwh=1000, hrs=5.0, msme_id=msme_b)
+    kpi_b_after = get_msme_kpi(msme_b)
+    assert kpi_b_after["rs_saved_per_year"] == 50000
+    assert kpi_b_after["kwh_cut_per_month"] == 1000
+    assert kpi_b_after["hours_saved"] == 5.0
+
+    # 5. Persistence across app restart: reading directly from a brand new DB session
+    new_db = SessionLocal()
+    kpi_row_a = new_db.query(KPIModel).filter(KPIModel.msme_id == msme_a).first()
+    assert kpi_row_a is not None
+    assert kpi_row_a.rs_saved_per_year == 50000
+    assert "solar_plan" in kpi_row_a.seen_keys_json
+    new_db.close()
+
+
+def test_dashboard_consistency_demo_mode_false(monkeypatch):
+    """When DEMO_MODE=false, dashboard returns empty defect history and 'No data yet'."""
+    monkeypatch.setattr(config, "DEMO_MODE", False)
+    from backend.dashboard import get_owner_dashboard
+    dash = get_owner_dashboard(msme_id="demo")
+    assert dash["defect_history"] == []
+    assert "No data yet" in dash["defect_caption"]
+
+
+

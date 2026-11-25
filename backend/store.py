@@ -145,12 +145,10 @@ seed_default_data()
 PROFILE = RAW_PROFILE.copy()
 AUDIT: List[Dict[str, Any]] = []
 PENDING: Dict[str, Dict[str, Any]] = {}
-KPI_DICT: Dict[str, float] = {"rs_saved_per_year": 0.0, "kwh_cut_per_month": 0.0, "hours_saved": 0.0}
-_seen = set()
 
 def reload_state(msme_id: str = "demo"):
     """Reloads in-memory mirrors from database for given MSME."""
-    global AUDIT, PENDING, KPI_DICT, _seen, PROFILE
+    global AUDIT, PENDING, PROFILE
     db = SessionLocal()
     try:
         m = db.query(MSMEModel).filter(MSMEModel.id == msme_id).first()
@@ -166,23 +164,10 @@ def reload_state(msme_id: str = "demo"):
         PENDING.clear()
         for p in pends:
             PENDING[p.id] = p.to_dict()
-
-        k = db.query(KPIModel).filter(KPIModel.msme_id == msme_id).first()
-        if k:
-            KPI_DICT["rs_saved_per_year"] = k.rs_saved_per_year
-            KPI_DICT["kwh_cut_per_month"] = k.kwh_cut_per_month
-            KPI_DICT["hours_saved"] = k.hours_saved
-            try:
-                _seen = set(json.loads(k.seen_keys_json or "[]"))
-            except Exception:
-                _seen = set()
     finally:
         db.close()
 
 reload_state("demo")
-
-# Backward compatibility alias
-KPI = KPI_DICT
 
 def log(agent: str, action: str, consent: str = "consent logged", details: Optional[Dict[str, Any]] = None, msme_id: str = "demo"):
     t = time.strftime("%H:%M:%S")
@@ -204,26 +189,39 @@ def log(agent: str, action: str, consent: str = "consent logged", details: Optio
     finally:
         db.close()
 
-def gain(key: str, rs: float = 0.0, kwh: float = 0.0, hrs: float = 0.0, msme_id: str = "demo"):
-    """Count each benefit once so repeated questions don't inflate the dashboard."""
-    if key in _seen:
-        return
-    _seen.add(key)
-    KPI_DICT["rs_saved_per_year"] += rs
-    KPI_DICT["kwh_cut_per_month"] += kwh
-    KPI_DICT["hours_saved"] += hrs
+def gain(key: str, rs: float = 0.0, kwh: float = 0.0, hrs: float = 0.0, msme_id: Optional[str] = None):
+    """Count each benefit once per MSME tenant so repeated questions don't inflate the dashboard."""
+    if not msme_id:
+        if config.DEMO_MODE:
+            msme_id = "demo"
+        else:
+            raise ValueError("msme_id is required for gain() when DEMO_MODE is false")
 
     db = SessionLocal()
     try:
         k = db.query(KPIModel).filter(KPIModel.msme_id == msme_id).first()
         if not k:
-            k = KPIModel(msme_id=msme_id, rs_saved_per_year=rs, kwh_cut_per_month=kwh, hours_saved=hrs, seen_keys_json=json.dumps(list(_seen)))
+            seen_set = {key}
+            k = KPIModel(
+                msme_id=msme_id,
+                rs_saved_per_year=rs,
+                kwh_cut_per_month=kwh,
+                hours_saved=hrs,
+                seen_keys_json=json.dumps(list(seen_set))
+            )
             db.add(k)
         else:
+            try:
+                seen_set = set(json.loads(k.seen_keys_json or "[]"))
+            except Exception:
+                seen_set = set()
+            if key in seen_set:
+                return
+            seen_set.add(key)
             k.rs_saved_per_year += rs
             k.kwh_cut_per_month += kwh
             k.hours_saved += hrs
-            k.seen_keys_json = json.dumps(list(_seen))
+            k.seen_keys_json = json.dumps(list(seen_set))
         db.commit()
     finally:
         db.close()
@@ -286,7 +284,9 @@ def get_msme_kpi(msme_id: str = "demo") -> dict:
     db = SessionLocal()
     try:
         k = db.query(KPIModel).filter(KPIModel.msme_id == msme_id).first()
-        return k.to_dict() if k else KPI_DICT
+        if k:
+            return k.to_dict()
+        return {"rs_saved_per_year": 0.0, "kwh_cut_per_month": 0.0, "hours_saved": 0.0, "seen_keys": []}
     finally:
         db.close()
 

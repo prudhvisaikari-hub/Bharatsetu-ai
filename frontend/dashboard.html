@@ -207,12 +207,10 @@
       <div class="card">
         <h2>
           <span>Shopfloor Rejection Rate Over Time</span>
-          <span class="badge">YOLOv8 + ISO 9001</span>
+          <span class="badge" id="defect-badge">YOLOv8 + ISO 9001</span>
         </h2>
         <div class="chart-box" id="defect-chart"></div>
-        <p style="font-size:12px; color:var(--mute); margin-top:10px;">
-          Rejection rate reduced from 4.8% to 3.6% over 6 months, saving approx ₹47,000/month in scrap metal cost.
-        </p>
+        <p id="defect-caption" style="font-size:12px; color:var(--mute); margin-top:10px;"></p>
       </div>
 
       <!-- 24-Hour Load Curve & Peak Shift -->
@@ -287,18 +285,28 @@
         document.getElementById('d-overdue').textContent = '₹' + (data.working_capital_and_loans.overdue_receivables_rs || 0).toLocaleString('en-IN');
         document.getElementById('d-days').textContent = (data.working_capital_and_loans.overdue_days || 0) + ' days';
 
-        // Defect rate bar chart
+        // Defect rate bar chart & dynamic caption
         var dChart = document.getElementById('defect-chart');
+        var dCap = document.getElementById('defect-caption');
         dChart.innerHTML = '';
-        (data.defect_history || []).forEach(function(item) {
-          var col = document.createElement('div');
-          col.className = 'bar-col';
-          var heightPct = (item.defect_rate_pct / 5.5) * 100;
-          col.innerHTML = '<span class="bar-val">' + item.defect_rate_pct + '%</span>' +
-                          '<div class="bar" style="height:' + heightPct + '%;"></div>' +
-                          '<span class="bar-label">' + item.month + '</span>';
-          dChart.appendChild(col);
-        });
+        var historyList = data.defect_history || [];
+        if (historyList.length === 0) {
+          dChart.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:var(--mute); font-size:13px;">No data yet</div>';
+          if (dCap) dCap.textContent = data.defect_caption || 'No data yet';
+        } else {
+          historyList.forEach(function(item) {
+            var col = document.createElement('div');
+            col.className = 'bar-col';
+            var heightPct = (item.defect_rate_pct / 5.5) * 100;
+            col.innerHTML = '<span class="bar-val">' + item.defect_rate_pct + '%</span>' +
+                            '<div class="bar" style="height:' + heightPct + '%;"></div>' +
+                            '<span class="bar-label">' + item.month + '</span>';
+            dChart.appendChild(col);
+          });
+          if (dCap) {
+            dCap.textContent = data.defect_caption || '';
+          }
+        }
 
         // Load curve chart (sampled every 4 hours for readability)
         var lChart = document.getElementById('load-chart');

@@ -73,6 +73,8 @@ def test_playwright_e2e_user_flows():
 
         # Wait for Setu reply and trace badges
         page.wait_for_selector(".tr span", timeout=8000)
+        # Wait until KPI tiles update to non-zero values from background state refresh
+        page.wait_for_function("document.getElementById('k1') && document.getElementById('k1').textContent !== '₹0'", timeout=5000)
         page.wait_for_timeout(600)
         assert "Scope 2 Carbon Draft" in page.text_content("#msgs") or "Carbon draft" in page.text_content("#msgs")
         page.screenshot(path=str(SCREENSHOTS_DIR / "03_chat_and_loan_card.png"), full_page=True)
@@ -82,6 +84,8 @@ def test_playwright_e2e_user_flows():
         approve_button = page.locator(".approval-box button:has-text('Approve')").first
         if approve_button.is_visible():
             approve_button.click()
+            page.wait_for_selector(".m:has-text('submitted')", timeout=5000)
+            page.wait_for_function("document.getElementById('k1') && document.getElementById('k1').textContent !== '₹0'", timeout=5000)
             page.wait_for_timeout(600)
             assert "successfully submitted" in page.text_content("#msgs") or "Submitted" in page.text_content("#msgs")
             page.screenshot(path=str(SCREENSHOTS_DIR / "04_loan_approved.png"), full_page=True)

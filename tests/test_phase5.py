@@ -14,6 +14,13 @@ def test_owner_dashboard_api():
     assert "defect_history" in data
     assert len(data["defect_history"]) == 6
     assert data["defect_history"][0]["defect_rate_pct"] >= 4.0
+    # In DEMO_MODE, defect caption must be dynamically computed and labeled as simulated trend
+    assert "defect_caption" in data
+    assert "simulated trend (demo data)" in data["defect_caption"]
+    assert f"{data['defect_history'][0]['defect_rate_pct']}%" in data["defect_caption"]
+    assert f"{data['defect_history'][-1]['defect_rate_pct']}%" in data["defect_caption"]
+    saving = data["defect_history"][0]["scrap_cost_rs"] - data["defect_history"][-1]["scrap_cost_rs"]
+    assert f"₹{saving:,.0f}" in data["defect_caption"]
     assert "load_profile_24h" in data
 
 def test_cluster_dashboard_compliant_aggregation():

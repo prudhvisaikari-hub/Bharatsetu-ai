@@ -164,7 +164,7 @@ def run_tool(name: str, args: dict, msme_id: str = "demo") -> Any:
         elif name == "energy_savings_plan":
             return energy.savings_plan(msme_id=msme_id)
         elif name == "find_schemes":
-            return scheme.find_schemes(args.get("needs"))
+            return scheme.find_schemes(args.get("needs"), msme_id=msme_id)
         elif name == "finance_summary":
             return finance.aa_summary(msme_id=msme_id)
         elif name == "draft_loan":
@@ -274,7 +274,7 @@ def _offline(text: str, msme_id: str = "demo") -> Dict[str, Any]:
     if is_carbon and is_finance:
         c = energy.carbon_report(msme_id=msme_id)
         e = energy.savings_plan(msme_id=msme_id)
-        m = scheme.find_schemes()["matches"]
+        m = scheme.find_schemes(msme_id=msme_id)["matches"]
         f = finance.draft_loan(msme_id=msme_id)
         trace = ["Setu", "Energy Agent", "Finance Agent", "Scheme Agent"]
         reply = (
@@ -341,7 +341,7 @@ def _offline(text: str, msme_id: str = "demo") -> Dict[str, Any]:
         }
 
     if is_finance:
-        m = scheme.find_schemes()["matches"]
+        m = scheme.find_schemes(msme_id=msme_id)["matches"]
         f = finance.draft_loan(msme_id=msme_id)
         return {
             "trace": ["Setu", "Scheme Agent", "Finance Agent"],

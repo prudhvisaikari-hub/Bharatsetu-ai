@@ -14,7 +14,7 @@ from .agents import (
 )
 from .dpi import get_adapter
 from .store import (
-    AUDIT, KPI, PENDING, PROFILE, log,
+    AUDIT, PENDING, PROFILE, log,
     get_approval, update_approval_status,
     get_msme_profile, get_msme_kpi, get_msme_audit, get_msme_pending
 )

@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This report documents the verification across the four previously unrun areas of BharatSetu AI:
+This report documents the verification across the target areas of BharatSetu AI:
 1. **Part 1: Docker Deployment, Secret Enforcement & Isolation**
 2. **Part 2: Playwright End-to-End Browser Tests & Artifact Generation**
 3. **Part 3: Anthropic Claude Natural Language & Multi-Turn Integration**
@@ -23,9 +23,9 @@ All observations are documented with real command invocations, outputs, and stat
 | **Part 1: Clean Checkout `JWT_SECRET` Fail-Fast Guard** | **PASSED** | `docker compose config` / `docker compose up` output |
 | **Part 1: Containerized Service Probing & Volume Persistence** | **NOT RUN** | Blocked by host WSL2 virtualization privileges (`Wsl/E_ACCESSDENIED`) |
 | **Part 2: Chromium Browser Engine Installation** | **PASSED** | `python -m playwright install chromium` |
-| **Part 2: Playwright E2E Multi-Step User Flow Execution** | **PASSED** | `tests/test_browser_e2e.py` (19.12s execution) |
-| **Part 2: Full-Page High-Resolution Screenshots Generation** | **PASSED** | `screenshots/01_*.png` to `06_*.png` (6 full-page artifacts) |
-| **Part 2: Full Project Test Suite (All 51 Tests)** | **PASSED** | `pytest -v` (51 passed in 39.09s, 100% pass rate) |
+| **Part 2: Playwright E2E Multi-Step User Flow Execution** | **PASSED** | `tests/test_browser_e2e.py` (9.28s execution) |
+| **Part 2: Full-Page High-Resolution Screenshots Generation** | **PASSED** | `screenshots/01_*.png` to `06_*.png` (6 full-page artifacts with live impact telemetry) |
+| **Part 2: Full Project Test Suite (All 53 Tests)** | **PASSED** | `pytest -v` (53 passed in 33.53s, 100% pass rate) |
 | **Part 3: Claude API Smoke Test & 10-Run Latency** | **NOT RUN** | `ANTHROPIC_API_KEY` not configured in environment |
 | **Part 4: YOLO NEU-DET Dataset Training & Benchmarking** | **NOT RUN** | `data/neu-det/data.yaml` not present on host |
 | **Part 4: Quality Agent Dual-Mode Fallback & Model Status** | **PASSED** | `tests/test_phase2.py::test_quality_agent_yolo_and_fallback` |
@@ -134,7 +134,7 @@ collecting ... collected 1 item
 
 tests/test_browser_e2e.py::test_playwright_e2e_user_flows PASSED         [100%]
 
-============================= 1 passed in 19.12s ==============================
+============================== 1 passed in 9.28s ==============================
 ```
 
 ---
@@ -142,20 +142,20 @@ tests/test_browser_e2e.py::test_playwright_e2e_user_flows PASSED         [100%]
 ### 2.2 Generated Screenshots Review
 **Status: PASSED**
 
-The test generated six full-page screenshots into `screenshots/`:
+The test generated six full-page screenshots into `screenshots/`, with non-zero Verified Impact telemetry captured after the demo flow:
 
 | File Name | Size (Bytes) | Visual Inspection Notes |
 |---|---|---|
 | `01_homepage_english.png` | 78,346 | English homepage; prominent yellow `⚠️ DEMO MODE: simulated data & test environment` banner visible; clean navigation and typography. |
 | `02_bilingual_hindi.png` | 81,844 | Hindi language mode; banner rendered in Hindi (`⚠️ डेमो मोड: सिम्युलेटेड डेटा और परीक्षण वातावरण`); bilingual button toggled. |
-| `03_chat_and_loan_card.png` | 123,526 | Chat interface displaying multi-agent loan application card with approval action buttons. |
-| `04_loan_approved.png` | 124,954 | Approved state confirmation with single-use token consumption and updated transaction log. |
-| `05_owner_dashboard.png` | 81,458 | Owner executive dashboard displaying GST metrics, energy monitoring, carbon footprint math, and demo mode banner. |
+| `03_chat_and_loan_card.png` | 123,230 | Chat interface displaying multi-agent loan application card with approval action buttons; Verified Impact tiles update to non-zero values (`₹6,09,360` saved/yr, `5,400` kWh cut/mo, `6.5` hrs saved). |
+| `04_loan_approved.png` | 124,765 | Approved state confirmation with single-use token consumption and updated transaction log; Verified Impact tiles actively populated. |
+| `05_owner_dashboard.png` | 82,055 | Owner executive dashboard displaying dynamic defect trend caption (`simulated trend (demo data)` with exact first-to-last saving), load curve, and demo banner. |
 | `06_cluster_privacy_guard.png` | 48,473 | Cluster dashboard showing k-anonymity privacy protection alert when cohort size is below threshold ($k < 5$). |
 
 ---
 
-### 2.3 Comprehensive Regression Test Suite (51 Tests)
+### 2.3 Comprehensive Regression Test Suite (53 Tests)
 **Status: PASSED**
 
 Executed the full test suite across unit, security, integration, and browser tests:
@@ -167,7 +167,7 @@ Command executed:
 
 Observed Output:
 ```
-====================== 51 passed, 16 warnings in 39.09s =======================
+====================== 53 passed, 16 warnings in 33.53s =======================
 ```
 
 Every test module passed, including:
@@ -175,10 +175,12 @@ Every test module passed, including:
 - Multi-Agent Orchestration & Physics (`test_phase2.py` - 8 tests)
 - India DPI Stubs & Integrations (`test_phase3.py` - 9 tests)
 - WhatsApp Meta Webhook, Voice & Bilingual UI (`test_phase4.py` - 6 tests)
-- Owner & Cluster Dashboards with Privacy Guard (`test_phase5.py` - 4 tests)
-- Strict Security Mode with DEMO_MODE=false (`test_demo_mode_false.py` - 8 tests)
+- Owner & Cluster Dashboards with Privacy Guard & Defect Consistency (`test_phase5.py` - 4 tests)
+- Strict Security Mode, Per-Tenant KPI Isolation & Deduplication (`test_demo_mode_false.py` - 10 tests)
 - WhatsApp Cryptographic Signatures & Link Throttling (`test_whatsapp_auth.py` - 2 tests)
 - Secret Leak Scanner (`test_secret_leak_scanner.py` - 1 test)
+- Core App Math, Approval Single-Use & Quality Flag (`test_app.py` - 4 tests)
+- Multi-Turn Claude Router & Loop (`test_claude_loop.py` - 1 test)
 - Playwright Browser E2E (`test_browser_e2e.py` - 1 test)
 
 ---
@@ -247,14 +249,20 @@ The Quality Agent's dual-mode architecture was verified via `tests/test_phase2.p
 
 ## Identified Fixes & Code Improvements During Verification
 
-1. **Owner & Cluster Dashboards Missing Demo Banner:**
-   - **File:** `backend/dashboard.py`, `frontend/dashboard.html`, `frontend/cluster.html`
-   - **Fix:** Added `demo_mode: config.DEMO_MODE` to `/api/dashboard` and `/api/dashboard/cluster` API responses. Added `#demo-banner` element to `dashboard.html` and `cluster.html` matching `index.html`.
-2. **Playwright Screenshot Completeness:**
+1. **Per-Tenant KPI Isolation & Process-Global State Elimination:**
+   - **Files:** `backend/store.py`, `backend/agents/scheme.py`, `backend/orchestrator.py`, `backend/main.py`
+   - **Fix:** Removed process-global `KPI_DICT` and `_seen`. Stored each MSME's totals and deduplication keys in `KPI.seen_keys_json`. Enforced `msme_id` parameter requirement on `gain()`. Updated `scheme.find_schemes` and orchestrator call sites.
+2. **Dashboard Data Consistency & Dynamic Trend Computation:**
+   - **Files:** `backend/dashboard.py`, `frontend/dashboard.html`
+   - **Fix:** Computed defect rate reduction and scrap cost saving dynamically from the first and last entries of the defect history. Removed hardcoded ₹47,000/month. Added `"simulated trend (demo data)"` label in `DEMO_MODE=true`, and returned `"No data yet"` when `DEMO_MODE=false`.
+3. **Verified Impact Live Telemetry Capture in Playwright E2E:**
    - **File:** `tests/test_browser_e2e.py`
-   - **Fix:** Added `full_page=True` to screenshot calls to capture full responsive page heights and footer elements.
-3. **Module Imports in Test Fixtures & Security Handlers:**
-   - **File:** `backend/store.py`, `backend/auth.py`, `tests/test_phase1.py`
+   - **Fix:** Synchronized browser screenshot triggers with non-zero KPI state refresh so screenshots capture the verified impact tiles (`₹6,09,360/yr`, `5,400 kWh/mo`, `6.5 hrs`).
+4. **Owner & Cluster Dashboards Missing Demo Banner:**
+   - **Files:** `backend/dashboard.py`, `frontend/dashboard.html`, `frontend/cluster.html`
+   - **Fix:** Added `demo_mode: config.DEMO_MODE` to `/api/dashboard` and `/api/dashboard/cluster` API responses. Added `#demo-banner` element to `dashboard.html` and `cluster.html` matching `index.html`.
+5. **Module Imports in Test Fixtures & Security Handlers:**
+   - **Files:** `backend/store.py`, `backend/auth.py`, `tests/test_phase1.py`
    - **Fix:** Resolved missing `os` and `hmac` imports identified during unit test execution.
 
 ---
