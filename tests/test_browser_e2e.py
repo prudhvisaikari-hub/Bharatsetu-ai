@@ -54,13 +54,13 @@ def test_playwright_e2e_user_flows():
         page.goto(f"{BASE_URL}/")
         page.wait_for_selector("#txt-app-title")
         assert "BharatSetu AI" in page.text_content("#txt-app-title")
-        page.screenshot(path=str(SCREENSHOTS_DIR / "01_homepage_english.png"))
+        page.screenshot(path=str(SCREENSHOTS_DIR / "01_homepage_english.png"), full_page=True)
 
         # Flow 2: Toggle to Devanagari Hindi
         page.click("#lang-btn")
         page.wait_for_timeout(300)
         assert "भारतसेतु एआई" in page.text_content("#txt-app-title")
-        page.screenshot(path=str(SCREENSHOTS_DIR / "02_bilingual_hindi.png"))
+        page.screenshot(path=str(SCREENSHOTS_DIR / "02_bilingual_hindi.png"), full_page=True)
 
         # Switch back to English for automated query run
         page.click("#lang-btn")
@@ -75,7 +75,7 @@ def test_playwright_e2e_user_flows():
         page.wait_for_selector(".tr span", timeout=8000)
         page.wait_for_timeout(600)
         assert "Scope 2 Carbon Draft" in page.text_content("#msgs") or "Carbon draft" in page.text_content("#msgs")
-        page.screenshot(path=str(SCREENSHOTS_DIR / "03_chat_and_loan_card.png"))
+        page.screenshot(path=str(SCREENSHOTS_DIR / "03_chat_and_loan_card.png"), full_page=True)
 
         # Flow 4: Human-in-the-Loop Confirmation
         # Check approval box appears with Approve button
@@ -84,13 +84,13 @@ def test_playwright_e2e_user_flows():
             approve_button.click()
             page.wait_for_timeout(600)
             assert "successfully submitted" in page.text_content("#msgs") or "Submitted" in page.text_content("#msgs")
-            page.screenshot(path=str(SCREENSHOTS_DIR / "04_loan_approved.png"))
+            page.screenshot(path=str(SCREENSHOTS_DIR / "04_loan_approved.png"), full_page=True)
 
         # Flow 5: Owner Operations Dashboard
         page.goto(f"{BASE_URL}/dashboard")
         page.wait_for_selector("#d-money")
         page.wait_for_timeout(800)
-        page.screenshot(path=str(SCREENSHOTS_DIR / "05_owner_dashboard.png"))
+        page.screenshot(path=str(SCREENSHOTS_DIR / "05_owner_dashboard.png"), full_page=True)
 
         # Flow 6: District Cluster Observatory & Privacy Guard
         page.goto(f"{BASE_URL}/cluster")
@@ -100,6 +100,6 @@ def test_playwright_e2e_user_flows():
         page.select_option("#cluster-select", "Palda Food & Engineering Cluster")
         page.wait_for_timeout(600)
         assert "Privacy Protection Active" in page.text_content("#privacy-warning")
-        page.screenshot(path=str(SCREENSHOTS_DIR / "06_cluster_privacy_guard.png"))
+        page.screenshot(path=str(SCREENSHOTS_DIR / "06_cluster_privacy_guard.png"), full_page=True)
 
         browser.close()

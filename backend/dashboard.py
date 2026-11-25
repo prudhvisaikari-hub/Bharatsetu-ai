@@ -6,6 +6,7 @@ Includes:
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from . import config
 from .db.models import MSME, KPI, Approval, AuditLog
 from .store import get_msme_profile, get_msme_kpi, get_msme_pending
 
@@ -61,6 +62,7 @@ def get_owner_dashboard(msme_id: str = "demo", db: Optional[Session] = None) -> 
         },
         "defect_history": defect_history,
         "load_profile_24h": [{"hour": f"{h:02d}:00", "kw": kw} for h, kw in enumerate(load_kw)],
+        "demo_mode": config.DEMO_MODE,
         "simulated": True
     }
 
@@ -85,6 +87,7 @@ def get_cluster_dashboard(cluster_name: str, db: Session) -> Dict[str, Any]:
                 f"Privacy protection active: Cohort size of {cohort_size} is below the minimum threshold "
                 f"of {MIN_COHORT_SIZE} MSMEs. Aggregate metrics are suppressed to prevent single-enterprise deanonymization."
             ),
+            "demo_mode": config.DEMO_MODE,
             "simulated": True
         }
 
@@ -123,5 +126,6 @@ def get_cluster_dashboard(cluster_name: str, db: Session) -> Dict[str, Any]:
             "Common Effluent Treatment Plant (CETP) IoT telemetry integration",
             "Cluster-wide TReDS liquidity onboarding with SBI and Bank of Baroda"
         ],
+        "demo_mode": config.DEMO_MODE,
         "simulated": True
     }

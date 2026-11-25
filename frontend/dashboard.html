@@ -172,6 +172,10 @@
     </div>
   </header>
 
+  <div id="demo-banner" style="display:none; background:#fef3c7; color:#92400e; border-bottom:1px solid #fcd34d; padding:7px 20px; font-size:13px; font-weight:600; text-align:center;">
+    ⚠️ DEMO MODE: simulated data &amp; test environment. Any transactions or filings require real-world validation.
+  </div>
+
   <main>
     <!-- Row 1: KPI Cards -->
     <div class="grid-4">
@@ -270,6 +274,9 @@
         var headers = token ? { 'Authorization': 'Bearer ' + token } : {};
         var r = await fetch('/api/dashboard/owner', { headers: headers });
         var data = await r.json();
+        if (data.demo_mode && document.getElementById('demo-banner')) {
+          document.getElementById('demo-banner').style.display = 'block';
+        }
 
         document.getElementById('txt-unit').textContent = data.enterprise_name + ' · ' + data.city;
         document.getElementById('d-money').textContent = '₹' + Math.round(data.impact_kpis.money_saved_per_year_rs).toLocaleString('en-IN');
