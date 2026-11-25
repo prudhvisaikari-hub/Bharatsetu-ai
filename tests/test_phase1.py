@@ -1,4 +1,5 @@
 import io
+import os
 import pytest
 from fastapi.testclient import TestClient
 from backend.main import app
@@ -88,7 +89,8 @@ def test_login_invalid_password():
     assert r.status_code == 401
 
 def test_login_success():
-    r = client.post("/api/auth/login", json={"username": "owner", "password": "setu123"})
+    pwd = os.getenv("SEED_OWNER_PASSWORD", "test_owner_secure_pass_123")
+    r = client.post("/api/auth/login", json={"username": "owner", "password": pwd})
     assert r.status_code == 200
     assert "access_token" in r.json()
 

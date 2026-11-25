@@ -1,5 +1,6 @@
 import os
 os.environ["DEMO_MODE"] = "true"
+os.environ["SEED_OWNER_PASSWORD"] = "test_owner_secure_pass_123"
 
 import pytest
 from backend import config

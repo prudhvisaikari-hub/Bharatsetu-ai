@@ -123,10 +123,7 @@ def test_jwt_secret_validation_enforcement():
     assert "FATAL: JWT_SECRET" in str(exc_short.value)
 
     # Known repository default secrets must be rejected in non-demo mode
-    for forbidden in [
-        "bharatsetu-msme-pithampur-secure-jwt-key-2026",
-        "bharatsetu-dev-secret-key-change-in-production-2026",
-    ]:
+    for forbidden in config.KNOWN_FORBIDDEN_JWT_SECRETS:
         with pytest.raises(RuntimeError) as exc_forbidden:
             validate_jwt_secret(forbidden, is_demo=False)
         assert "FATAL: JWT_SECRET" in str(exc_forbidden.value)

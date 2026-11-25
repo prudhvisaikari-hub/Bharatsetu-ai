@@ -13,7 +13,7 @@ jobs:
     env:
       DEMO_MODE: "true"
       JWT_SECRET: "ci-secret-at-least-32-characters-long-key-12345678"
-      SEED_OWNER_PASSWORD: "setu123"
+      SEED_OWNER_PASSWORD: "ci-test-owner-pass-12345"
       PYTHONPATH: "."
 
     steps:

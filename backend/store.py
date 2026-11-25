@@ -2,6 +2,7 @@
 Maintains backwards-compatible PROFILE, AUDIT, PENDING, KPI exports while providing
 per-MSME data isolation, audit logging, consent tracking, and approval lifecycle.
 """
+import os
 import json
 import time
 import uuid
@@ -49,17 +50,23 @@ def seed_default_data():
             )
             db.add(demo)
 
-            # Seed default demo owner user
-            from .auth import hash_password
-            user = UserModel(
-                id="user_demo",
-                msme_id="demo",
-                username="owner",
-                password_hash=hash_password("setu123"),
-                role="owner",
-                phone_number="+919876543210"
-            )
-            db.add(user)
+            # Seed default demo owner user only when DEMO_MODE is true
+            if config.DEMO_MODE:
+                from .auth import hash_password
+                import secrets
+                seed_pass = os.getenv("SEED_OWNER_PASSWORD")
+                if not seed_pass:
+                    seed_pass = secrets.token_urlsafe(12)
+                    logger.info("DEMO_MODE active: Generated random demo owner password.")
+                user = UserModel(
+                    id="user_demo",
+                    msme_id="demo",
+                    username="owner",
+                    password_hash=hash_password(seed_pass),
+                    role="owner",
+                    phone_number="+919876543210"
+                )
+                db.add(user)
 
             # Seed default KPI record
             kpi = KPIModel(
