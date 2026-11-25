@@ -173,3 +173,13 @@ class WhatsAppLink(Base):
             "msme_id": self.msme_id,
             "verified_at": self.verified_at.isoformat() if self.verified_at else None
         }
+
+
+class WhatsAppLinkThrottle(Base):
+    __tablename__ = "whatsapp_link_throttles"
+
+    phone_hash = Column(String(128), primary_key=True, index=True)
+    failed_count = Column(Integer, default=0, nullable=False)
+    first_failed_at = Column(DateTime, nullable=True)
+    locked_until = Column(DateTime, nullable=True)
+

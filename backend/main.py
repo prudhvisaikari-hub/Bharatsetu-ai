@@ -479,26 +479,30 @@ def request_whatsapp_link_otp(
     db: Session = Depends(get_db)
 ):
     import secrets
+    import base64
     import datetime as dt
-    otp_code = secrets.token_hex(3).upper()
-    expires_at = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=15)
+    # 8-character base32 code (5 bytes = 40 bits of cryptographic entropy)
+    code_clean = base64.b32encode(secrets.token_bytes(5)).decode("ascii").upper()
+    formatted_code = f"{code_clean[:4]}-{code_clean[4:]}"
+    expires_at = dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=10)
     
-    # Invalidate prior pending OTPs for this enterprise
+    # Cap pending codes per MSME at 1: Invalidate prior pending OTPs for this enterprise
     db.query(WhatsAppLink).filter(WhatsAppLink.msme_id == user.msme_id, WhatsAppLink.verified_at.is_(None)).delete()
     
     link = WhatsAppLink(
-        phone_hash=f"pending_{secrets.token_hex(8)}",
+        phone_hash=f"pending_{secrets.token_hex(16)}",
         msme_id=user.msme_id,
-        otp_code=otp_code,
+        otp_code=code_clean,
         otp_expires_at=expires_at
     )
     db.add(link)
     db.commit()
     return {
         "status": "success",
-        "otp_code": otp_code,
-        "expires_in_minutes": 15,
-        "instructions": f"Send 'LINK {otp_code}' from your WhatsApp to connect your mobile number to your MSME."
+        "otp_code": formatted_code,
+        "raw_code": code_clean,
+        "expires_in_minutes": 10,
+        "instructions": f"Send 'LINK {formatted_code}' from your WhatsApp to connect your mobile number to your MSME."
     }
 
 @app.post("/api/voice/transcribe")
