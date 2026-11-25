@@ -22,17 +22,22 @@ from ..channels.voice import voice_adapter
 from ..store import log, get_approval, update_approval_status
 from ..db.database import SessionLocal
 from ..db.models import WhatsAppLink, WhatsAppLinkThrottle
-from ..auth import hash_phone, mask_phone
+from ..auth import hash_phone, legacy_hash_phone, mask_phone
 
 logger = logging.getLogger("bharatsetu.whatsapp")
 
 def verify_meta_webhook(mode: str, token: str, challenge: str) -> Optional[str]:
-    """Verifies Meta WhatsApp Cloud API webhook registration handshake."""
-    if not config.WHATSAPP_VERIFY_TOKEN:
-        if config.DEMO_MODE and token == "bharatsetu_verify_token":
-            return challenge
+    """Verifies Meta WhatsApp Cloud API webhook registration handshake.
+    WHATSAPP_VERIFY_TOKEN must be set (16+ characters) before handshake succeeds;
+    an empty token never matches an empty query value.
+    """
+    verify_token = (config.WHATSAPP_VERIFY_TOKEN or "").strip()
+    if not verify_token or len(verify_token) < 16:
+        logger.warning("WhatsApp GET webhook handshake rejected: WHATSAPP_VERIFY_TOKEN not configured or <16 chars.")
         return None
-    if mode == "subscribe" and token == config.WHATSAPP_VERIFY_TOKEN:
+    if not token or not token.strip():
+        return None
+    if mode == "subscribe" and hmac.compare_digest(token.strip(), verify_token):
         logger.info("Meta WhatsApp Cloud API webhook verified successfully.")
         return challenge
     return None
@@ -69,6 +74,17 @@ def resolve_tenant_from_phone(sender_phone: str, text_message: str = "") -> Tupl
     try:
         p_hash = hash_phone(sender_phone)
         link = db.query(WhatsAppLink).filter(WhatsAppLink.phone_hash == p_hash, WhatsAppLink.verified_at.isnot(None)).first()
+
+        # Lazy upgrade: if HMAC hash not found, check legacy salted SHA-256 hash
+        if not link:
+            leg_hash = legacy_hash_phone(sender_phone)
+            leg_link = db.query(WhatsAppLink).filter(WhatsAppLink.phone_hash == leg_hash, WhatsAppLink.verified_at.isnot(None)).first()
+            if leg_link:
+                logger.info(f"MIGRATION: Upgraded legacy phone hash to HMAC-SHA256 for {mask_phone(sender_phone)} (msme_id={leg_link.msme_id})")
+                leg_link.phone_hash = p_hash
+                db.commit()
+                link = leg_link
+
         if link:
             return link.msme_id, None
 

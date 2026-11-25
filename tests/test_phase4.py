@@ -2,13 +2,16 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image, ImageDraw
+from backend import config
 from backend.main import app
 
 client = TestClient(app)
 
-def test_whatsapp_meta_webhook_verification():
-    # Correct token
-    r = client.get("/api/webhook/whatsapp?hub.mode=subscribe&hub.challenge=test_chal_123&hub.verify_token=bharatsetu_verify_token")
+def test_whatsapp_meta_webhook_verification(monkeypatch):
+    test_token = "secure_verify_token_16_chars_min"
+    monkeypatch.setattr(config, "WHATSAPP_VERIFY_TOKEN", test_token)
+    # Correct token (minimum 16 characters)
+    r = client.get(f"/api/webhook/whatsapp?hub.mode=subscribe&hub.challenge=test_chal_123&hub.verify_token={test_token}")
     assert r.status_code == 200
     assert r.text == "test_chal_123"
 

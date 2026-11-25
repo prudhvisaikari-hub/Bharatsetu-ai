@@ -60,4 +60,18 @@ WHATSAPP_APP_SECRET = os.getenv("WHATSAPP_APP_SECRET", "")
 WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
 WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
-PHONE_HASH_SALT = os.getenv("PHONE_HASH_SALT", "bharatsetu-phone-salt-2026")
+def validate_phone_hash_key(raw_key: str, is_demo: bool) -> str:
+    cleaned = (raw_key or "").strip()
+    if not cleaned or len(cleaned) < 32:
+        if is_demo:
+            ephemeral = secrets.token_urlsafe(48)
+            logger.warning("⚠️ DEMO_MODE active: PHONE_HASH_KEY missing or <32 characters. Generated ephemeral key for this process.")
+            return ephemeral
+        raise RuntimeError(
+            "FATAL: PHONE_HASH_KEY environment variable is missing or shorter than 32 characters when DEMO_MODE=false. "
+            "Configure a secure random key using: python -c \"import secrets;print(secrets.token_urlsafe(48))\""
+        )
+    return cleaned
+
+PHONE_HASH_KEY = validate_phone_hash_key(os.getenv("PHONE_HASH_KEY", os.getenv("PHONE_HASH_SALT", "")), DEMO_MODE)
+PHONE_HASH_SALT = PHONE_HASH_KEY
