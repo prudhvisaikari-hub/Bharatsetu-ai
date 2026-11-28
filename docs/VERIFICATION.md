@@ -148,8 +148,8 @@ The test generated six full-page screenshots into `screenshots/`, with non-zero 
 |---|---|---|
 | `01_homepage_english.png` | 78,346 | English homepage; prominent yellow `⚠️ DEMO MODE: simulated data & test environment` banner visible; clean navigation and typography. |
 | `02_bilingual_hindi.png` | 81,844 | Hindi language mode; banner rendered in Hindi (`⚠️ डेमो मोड: सिम्युलेटेड डेटा और परीक्षण वातावरण`); bilingual button toggled. |
-| `03_chat_and_loan_card.png` | 123,230 | Chat interface displaying multi-agent loan application card with approval action buttons; Verified Impact tiles update to non-zero values (`₹6,09,360` saved/yr, `5,400` kWh cut/mo, `6.5` hrs saved). |
-| `04_loan_approved.png` | 124,765 | Approved state confirmation with single-use token consumption and updated transaction log; Verified Impact tiles actively populated. |
+| `03_chat_and_loan_card.png` | 123,457 | Chat interface displaying multi-agent loan application card with approval action buttons; Verified Impact tiles update to non-zero values (`₹6,09,360` saved/yr, `5,400` kWh cut/mo, `6.5` hrs saved). |
+| `04_loan_approved.png` | 125,014 | Approved state confirmation with single-use token consumption and updated transaction log; Verified Impact tiles actively populated. |
 | `05_owner_dashboard.png` | 82,055 | Owner executive dashboard displaying dynamic defect trend caption (`simulated trend (demo data)` with exact first-to-last saving), load curve, and demo banner. |
 | `06_cluster_privacy_guard.png` | 48,473 | Cluster dashboard showing k-anonymity privacy protection alert when cohort size is below threshold ($k < 5$). |
 
